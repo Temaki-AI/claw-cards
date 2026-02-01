@@ -1,0 +1,191 @@
+// ═══════════════════════════════════════
+// 🦞 CLAW CARDS — Database Layer
+// SQLite via sql.js (pure JS, no native deps)
+// ═══════════════════════════════════════
+
+import initSqlJs from 'sql.js';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DB_PATH = join(__dirname, 'data', 'cards.db');
+
+// Ensure data dir exists
+mkdirSync(join(__dirname, 'data', 'images'), { recursive: true });
+
+// Initialize sql.js
+const SQL = await initSqlJs();
+let db;
+
+if (existsSync(DB_PATH)) {
+  const buf = readFileSync(DB_PATH);
+  db = new SQL.Database(buf);
+} else {
+  db = new SQL.Database();
+}
+
+// Save helper — call after writes
+function save() {
+  const data = db.export();
+  writeFileSync(DB_PATH, Buffer.from(data));
+}
+
+// ─── Schema ───
+db.run(`
+  CREATE TABLE IF NOT EXISTS cards (
+    id TEXT PRIMARY KEY,
+    agent_name TEXT NOT NULL,
+    emoji TEXT,
+    type TEXT,
+    title TEXT,
+    flavor TEXT,
+    model TEXT,
+    soul_excerpt TEXT,
+    score INTEGER,
+    cp INTEGER,
+    stats_claw INTEGER,
+    stats_shell INTEGER,
+    stats_surge INTEGER,
+    stats_cortex INTEGER,
+    stats_aura INTEGER,
+    hostname TEXT,
+    channels TEXT,
+    version TEXT,
+    signature TEXT,
+    has_image INTEGER DEFAULT 0,
+    rarity TEXT,
+    published_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+db.run(`CREATE INDEX IF NOT EXISTS idx_cards_cp ON cards(cp DESC)`);
+db.run(`CREATE INDEX IF NOT EXISTS idx_cards_rarity ON cards(rarity)`);
+db.run(`CREATE INDEX IF NOT EXISTS idx_cards_published ON cards(published_at DESC)`);
+save();
+
+// ─── Helpers ───
+
+export function computeCP(score, stats) {
+  const sum = (stats.claw || 0) + (stats.shell || 0) + (stats.surge || 0) +
+              (stats.cortex || 0) + (stats.aura || 0);
+  return Math.min(1000, Math.round((score + sum * 2) * 5));
+}
+
+export function computeRarity(score) {
+  if (score >= 95) return 'LEVIATHAN';
+  if (score >= 85) return 'ALPHA';
+  if (score >= 70) return 'ADULT';
+  if (score >= 50) return 'JUVENILE';
+  return 'HATCHLING';
+}
+
+// ─── Helper to convert sql.js results to objects ───
+function rowsToObjects(result) {
+  if (!result || !result[0]) return [];
+  const { columns, values } = result[0];
+  return values.map(row => {
+    const obj = {};
+    columns.forEach((col, i) => obj[col] = row[i]);
+    return obj;
+  });
+}
+
+function queryOne(sql, params = []) {
+  const result = db.exec(sql, params);
+  const rows = rowsToObjects(result);
+  return rows[0] || null;
+}
+
+function queryAll(sql, params = []) {
+  const result = db.exec(sql, params);
+  return rowsToObjects(result);
+}
+
+// ─── Short Hash ───
+function shortHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h = ((h << 5) - h) + ch;
+    h |= 0;
+  }
+  return Math.abs(h).toString(36).slice(0, 6);
+}
+
+// ─── Exports ───
+
+export function upsertCard(data) {
+  const { agent, health, stats, meta, signature } = data;
+  const score = health?.score || 0;
+  const cpVal = computeCP(score, stats || {});
+  const rarityVal = computeRarity(score);
+
+  const slug = (agent.name || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const hash = shortHash(JSON.stringify(data));
+  const id = `${slug}-${hash}`;
+  const now = meta?.published_at || new Date().toISOString();
+
+  db.run(`
+    INSERT INTO cards (id, agent_name, emoji, type, title, flavor, model, soul_excerpt,
+      score, cp, stats_claw, stats_shell, stats_surge, stats_cortex, stats_aura,
+      hostname, channels, version, signature, rarity, published_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      emoji=excluded.emoji, type=excluded.type, title=excluded.title,
+      flavor=excluded.flavor, model=excluded.model, soul_excerpt=excluded.soul_excerpt,
+      score=excluded.score, cp=excluded.cp,
+      stats_claw=excluded.stats_claw, stats_shell=excluded.stats_shell,
+      stats_surge=excluded.stats_surge, stats_cortex=excluded.stats_cortex,
+      stats_aura=excluded.stats_aura, hostname=excluded.hostname,
+      channels=excluded.channels, version=excluded.version,
+      signature=excluded.signature, rarity=excluded.rarity,
+      updated_at=CURRENT_TIMESTAMP
+  `, [
+    id, agent.name, agent.emoji || '🦞', agent.type || 'WARRIOR',
+    agent.title || '', agent.flavor || '', agent.model || '', agent.soul_excerpt || '',
+    score, cpVal,
+    stats?.claw || 0, stats?.shell || 0, stats?.surge || 0, stats?.cortex || 0, stats?.aura || 0,
+    meta?.hostname || '', JSON.stringify(meta?.channels || []), meta?.version || '',
+    signature || null, rarityVal, now
+  ]);
+  save();
+
+  const row = queryOne('SELECT * FROM cards WHERE id = ?', [id]);
+  return row;
+}
+
+export function getCardById(id) {
+  return queryOne('SELECT * FROM cards WHERE id = ?', [id]);
+}
+
+export function markCardImage(id) {
+  db.run('UPDATE cards SET has_image = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [id]);
+  save();
+}
+
+export function listAllCards({ sort = 'cp', limit = 50, offset = 0, rarity = null } = {}) {
+  const lim = Math.min(Math.max(1, Number(limit) || 50), 200);
+  const off = Math.max(0, Number(offset) || 0);
+
+  const orderMap = {
+    cp: 'cp DESC',
+    newest: 'published_at DESC',
+    rarity: 'score DESC, cp DESC',
+  };
+  const order = orderMap[sort] || orderMap.cp;
+
+  let rows, total;
+  if (rarity) {
+    const r = rarity.toUpperCase();
+    rows = queryAll(`SELECT * FROM cards WHERE rarity = ? ORDER BY ${order} LIMIT ? OFFSET ?`, [r, lim, off]);
+    total = queryOne('SELECT COUNT(*) as total FROM cards WHERE rarity = ?', [r])?.total || 0;
+  } else {
+    rows = queryAll(`SELECT * FROM cards ORDER BY ${order} LIMIT ? OFFSET ?`, [lim, off]);
+    total = queryOne('SELECT COUNT(*) as total FROM cards', [])?.total || 0;
+  }
+
+  return { cards: rows, total, limit: lim, offset: off };
+}
+
+export default db;

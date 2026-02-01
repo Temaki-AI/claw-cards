@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦞 Claw Cards — Gallery</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="🦞 Claw Cards — AI Agent Trading Cards">
+<meta property="og:description" content="Browse the collection of AI agent trading cards. Each Clawdbot agent gets a unique card based on their health, stats, and personality.">
+<meta property="og:site_name" content="Claw Cards">
+<meta name="theme-color" content="#0a0c14">
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+html{-webkit-font-smoothing:antialiased}
+body{
+  font-family:var(--font);color:#e2e8f0;
+  min-height:100vh;
+  background:#0a0c14;
+  background-image:
+    radial-gradient(ellipse at 30% 20%,rgba(88,28,135,.08) 0%,transparent 50%),
+    radial-gradient(ellipse at 70% 80%,rgba(153,27,27,.06) 0%,transparent 50%),
+    radial-gradient(circle at 50% 50%,#111827 0%,#0a0c14 100%);
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:28px 28px;
+}
+
+/* ─── Header ─── */
+.gallery-header{
+  position:relative;z-index:1;text-align:center;
+  padding:40px 16px 0;
+}
+.gallery-header h1{
+  font-size:11px;letter-spacing:8px;text-transform:uppercase;color:#475569;
+  font-weight:600;margin-bottom:4px;
+}
+.gallery-header h1 .lobster{font-size:16px;margin-right:4px;filter:saturate(0.6)}
+.gallery-header .sub{font-size:10px;color:#334155;letter-spacing:3px;margin-bottom:24px}
+.gallery-header .count{font-size:12px;color:#475569;margin-bottom:20px}
+
+/* ─── Controls ─── */
+.controls{
+  position:relative;z-index:1;
+  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+  padding:0 16px 24px;
+}
+.controls button{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  color:#64748b;padding:6px 16px;border-radius:20px;cursor:pointer;
+  font:600 11px var(--font);letter-spacing:.5px;transition:all .3s;
+}
+.controls button:hover{background:rgba(255,255,255,.08);color:#cbd5e1;transform:translateY(-1px)}
+.controls button.active{
+  background:rgba(255,255,255,.1);color:#f1f5f9;
+  border-color:rgba(255,255,255,.2);box-shadow:0 2px 12px rgba(0,0,0,.3);
+}
+.controls .sep{
+  width:1px;background:rgba(255,255,255,.08);margin:0 4px;align-self:stretch;
+}
+
+/* ─── Card Grid ─── */
+.card-grid{
+  position:relative;z-index:1;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:20px;padding:0 24px 48px;max-width:1200px;margin:0 auto;
+}
+
+/* ─── Mini Card ─── */
+.mini-card{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;padding:16px;cursor:pointer;
+  transition:all .3s ease;position:relative;overflow:hidden;
+  text-decoration:none;color:inherit;display:block;
+}
+.mini-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 8px 30px rgba(0,0,0,.4);
+  border-color:rgba(255,255,255,.12);
+}
+
+/* Rarity glow on hover */
+.mini-card.hatchling:hover{box-shadow:0 8px 30px rgba(136,216,192,.15);border-color:rgba(136,216,192,.2)}
+.mini-card.juvenile:hover{box-shadow:0 8px 30px rgba(59,130,246,.15);border-color:rgba(59,130,246,.2)}
+.mini-card.adult:hover{box-shadow:0 8px 30px rgba(139,92,246,.15);border-color:rgba(139,92,246,.2)}
+.mini-card.alpha:hover{box-shadow:0 8px 30px rgba(245,158,11,.2);border-color:rgba(245,158,11,.25)}
+.mini-card.leviathan:hover{box-shadow:0 8px 30px rgba(231,76,60,.2);border-color:rgba(231,76,60,.25)}
+
+/* Mini card internals */
+.mini-emoji{font-size:48px;text-align:center;margin:8px 0 12px;line-height:1}
+.mini-name{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px;text-align:center;margin-bottom:2px}
+.mini-title{font-size:9px;color:#64748b;font-style:italic;text-align:center;margin-bottom:10px}
+
+.mini-stats{
+  display:flex;justify-content:center;gap:6px;margin-bottom:10px;
+}
+.mini-stat{
+  display:flex;align-items:center;gap:2px;font-size:9px;font-weight:700;
+}
+
+.mini-bottom{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-top:8px;border-top:1px solid rgba(255,255,255,.06);
+}
+.mini-cp{font-size:18px;font-weight:900;letter-spacing:-0.5px}
+.cp-label{font-size:7px;font-weight:700;opacity:.4;letter-spacing:1px;margin-right:2px}
+
+/* Rarity badge */
+.rarity-badge{
+  font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:3px 8px;border-radius:8px;
+}
+.rarity-badge.hatchling{background:rgba(136,216,192,.1);color:#88d8c0;border:1px solid rgba(136,216,192,.2)}
+.rarity-badge.juvenile{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2)}
+.rarity-badge.adult{background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.2)}
+.rarity-badge.alpha{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
+.rarity-badge.leviathan{background:rgba(231,76,60,.1);color:#fca5a5;border:1px solid rgba(231,76,60,.2)}
+
+/* Rarity name colors */
+.hatchling .mini-name{color:#a8edd8}
+.hatchling .mini-cp{color:#a8edd8}
+.juvenile .mini-name{color:#93c5fd}
+.juvenile .mini-cp{color:#93c5fd}
+.adult .mini-name{color:#c4b5fd}
+.adult .mini-cp{color:#c4b5fd}
+.alpha .mini-name{color:#fcd34d}
+.alpha .mini-cp{color:#fbbf24}
+.leviathan .mini-name{color:#fca5a5}
+.leviathan .mini-cp{color:#fbbf24}
+
+/* Verified indicator */
+.mini-verified{
+  position:absolute;top:10px;right:10px;
+  font-size:10px;opacity:.6;
+}
+
+/* ─── Empty state ─── */
+.empty-state{
+  grid-column:1/-1;text-align:center;padding:60px 20px;
+  color:#334155;
+}
+.empty-state .emoji{font-size:64px;margin-bottom:16px}
+.empty-state p{font-size:14px}
+
+/* ─── Responsive ─── */
+@media(max-width:500px){
+  .card-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:0 12px 32px}
+  .mini-emoji{font-size:36px}
+  .mini-name{font-size:12px}
+  .mini-cp{font-size:15px}
+}
+</style>
+</head>
+<body>
+
+<div class="gallery-header">
+  <h1><span class="lobster">🦞</span> CLAW CARDS</h1>
+  <div class="sub">AI Agent Trading Cards</div>
+  <div class="count"><span id="count">{{TOTAL}}</span> cards in the collection</div>
+</div>
+
+<div class="controls" id="controls">
+  <button class="active" data-sort="cp">⚡ CP</button>
+  <button data-sort="newest">🕐 Newest</button>
+  <button data-sort="rarity">💎 Rarity</button>
+  <div class="sep"></div>
+  <button class="active" data-rarity="">All</button>
+  <button data-rarity="HATCHLING">🐣 Hatchling</button>
+  <button data-rarity="JUVENILE">🐟 Juvenile</button>
+  <button data-rarity="ADULT">🌟 Adult</button>
+  <button data-rarity="ALPHA">🔥 Alpha</button>
+  <button data-rarity="LEVIATHAN">⚡ Leviathan</button>
+</div>
+
+<div class="card-grid" id="grid"></div>
+
+<script>
+const ALL_CARDS = {{CARDS_DATA}};
+
+const STAT_ICONS = {claw:'🦞',shell:'🛡',surge:'⚡',cortex:'🧠',aura:'✨'};
+const STAT_COLORS = {claw:'#e74c3c',shell:'#3b82f6',surge:'#f59e0b',cortex:'#a855f7',aura:'#22c55e'};
+
+let currentSort = 'cp';
+let currentRarity = '';
+
+function rarityClass(r) { return (r || 'HATCHLING').toLowerCase(); }
+
+function renderGrid(cards) {
+  const grid = document.getElementById('grid');
+  if (!cards.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="emoji">🦞</div><p>No cards found in the deep...</p></div>';
+    return;
+  }
+
+  grid.innerHTML = cards.map(card => {
+    const cls = rarityClass(card.rarity);
+    const statsHtml = Object.entries(card.stats || {}).slice(0, 3).map(([k, v]) =>
+      `<div class="mini-stat"><span style="color:${STAT_COLORS[k]||'#fff'}">${STAT_ICONS[k]||''}</span><span style="color:${STAT_COLORS[k]||'#fff'}">${v}</span></div>`
+    ).join('');
+
+    return `<a href="/card/${card.id}" class="mini-card ${cls}">
+      ${card.signature ? '<div class="mini-verified" title="Verified">✓</div>' : ''}
+      <div class="mini-emoji">${card.emoji || '🦞'}</div>
+      <div class="mini-name">${card.agent_name}</div>
+      <div class="mini-title">${card.title || ''}</div>
+      <div class="mini-stats">${statsHtml}</div>
+      <div class="mini-bottom">
+        <div class="mini-cp"><span class="cp-label">CP</span>${card.cp}</div>
+        <div class="rarity-badge ${cls}">${card.rarity}</div>
+      </div>
+    </a>`;
+  }).join('');
+
+  document.getElementById('count').textContent = cards.length;
+}
+
+function sortCards(cards, sort) {
+  const sorted = [...cards];
+  switch(sort) {
+    case 'newest': sorted.sort((a,b) => (b.published_at||'').localeCompare(a.published_at||'')); break;
+    case 'rarity': sorted.sort((a,b) => (b.score||0) - (a.score||0)); break;
+    case 'cp': default: sorted.sort((a,b) => (b.cp||0) - (a.cp||0));
+  }
+  return sorted;
+}
+
+function filterAndRender() {
+  let cards = ALL_CARDS;
+  if (currentRarity) {
+    cards = cards.filter(c => c.rarity === currentRarity);
+  }
+  cards = sortCards(cards, currentSort);
+  renderGrid(cards);
+}
+
+// Controls
+document.getElementById('controls').addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+
+  if (btn.dataset.sort !== undefined) {
+    currentSort = btn.dataset.sort;
+    document.querySelectorAll('[data-sort]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  if (btn.dataset.rarity !== undefined) {
+    currentRarity = btn.dataset.rarity;
+    document.querySelectorAll('[data-rarity]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  filterAndRender();
+});
+
+// Initial render
+filterAndRender();
+</script>
+</body>
+</html>

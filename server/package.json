@@ -1,0 +1,18 @@
+{
+  "name": "claw-cards-server",
+  "version": "1.0.0",
+  "description": "🦞 Claw Cards — AI Agent Trading Card Backend",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs",
+    "dev": "node --watch index.mjs",
+    "seed": "node seed.mjs"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "multer": "^1.4.5-lts.2",
+    "sql.js": "^1.13.0"
+  }
+}
