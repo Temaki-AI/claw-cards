@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦞 Clawd Cards — AI Agent Trading Cards</title>
+<style>
+/* ═══════════════════════════════════════
+   🦞 CLAWD CARDS — Trading Card System
+   Zero dependencies. Pure CSS magic.
+   ═══════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --card-w:400px;--card-h:580px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{
+  font-family:var(--font);color:#e2e8f0;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  overflow-x:hidden;
+  background:#0a0c14;
+  background-image:
+    radial-gradient(ellipse at 30% 20%,rgba(88,28,135,.08) 0%,transparent 50%),
+    radial-gradient(ellipse at 70% 80%,rgba(153,27,27,.06) 0%,transparent 50%),
+    radial-gradient(circle at 50% 50%,#111827 0%,#0a0c14 100%);
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:28px 28px;
+}
+
+/* ─── Page Layout ─── */
+.page{
+  position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
+  padding:32px 16px 48px;width:100%;max-width:640px;
+}
+.page-brand{
+  font-size:11px;letter-spacing:8px;text-transform:uppercase;color:#475569;
+  margin-bottom:4px;font-weight:600;
+}
+.page-brand .lobster{font-size:16px;margin-right:4px;filter:saturate(0.6)}
+.page-sub{font-size:10px;color:#334155;letter-spacing:3px;margin-bottom:28px}
+
+/* ─── Agent Selector ─── */
+.selector{display:flex;gap:6px;margin-bottom:36px;flex-wrap:wrap;justify-content:center}
+.selector button{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  color:#64748b;padding:8px 18px;border-radius:24px;cursor:pointer;
+  font:600 12px var(--font);letter-spacing:.5px;transition:all .3s;
+}
+.selector button:hover{background:rgba(255,255,255,.08);color:#cbd5e1;transform:translateY(-1px)}
+.selector button.active{
+  background:rgba(255,255,255,.1);color:#f1f5f9;
+  border-color:rgba(255,255,255,.2);box-shadow:0 2px 12px rgba(0,0,0,.3);
+}
+
+/* ─── Card Stage (3D Perspective Container) ─── */
+.card-stage{
+  perspective:900px;margin-bottom:32px;position:relative;
+}
+/* Glow pool beneath card */
+.card-stage::after{
+  content:'';position:absolute;bottom:-20px;left:50%;
+  width:70%;height:40px;border-radius:50%;
+  transform:translateX(-50%);z-index:-1;
+  transition:all .5s;
+}
+.card-stage.hatchling::after{background:radial-gradient(ellipse,rgba(136,216,192,.15),transparent 70%)}
+.card-stage.juvenile::after{background:radial-gradient(ellipse,rgba(59,130,246,.15),transparent 70%)}
+.card-stage.adult::after{background:radial-gradient(ellipse,rgba(139,92,246,.2),transparent 70%)}
+.card-stage.alpha::after{background:radial-gradient(ellipse,rgba(245,158,11,.25),transparent 70%)}
+.card-stage.leviathan::after{background:radial-gradient(ellipse,rgba(231,76,60,.3),transparent 70%);width:85%;height:50px}
+
+/* ═══════════════════════════
+   THE CARD
+   ═══════════════════════════ */
+.card{
+  width:var(--card-w);height:var(--card-h);
+  border-radius:16px;position:relative;overflow:hidden;
+  transform-style:preserve-3d;transition:transform .12s ease-out;
+  display:flex;flex-direction:column;
+  will-change:transform;
+}
+
+/* ─── HATCHLING Frame ─── */
+.card.hatchling{
+  background:linear-gradient(165deg,#122e25 0%,#0d2219 50%,#0f2a20 100%);
+  border:2px solid rgba(136,216,192,.25);border-radius:20px;
+  box-shadow:0 4px 30px rgba(136,216,192,.08),inset 0 1px 0 rgba(136,216,192,.1);
+}
+/* ─── JUVENILE Frame ─── */
+.card.juvenile{
+  background:linear-gradient(165deg,#101f3c 0%,#0c1830 50%,#0f1c38 100%);
+  border:2.5px solid rgba(59,130,246,.3);
+  box-shadow:0 4px 35px rgba(59,130,246,.1),inset 0 1px 0 rgba(59,130,246,.1);
+}
+/* ─── ADULT Frame ─── */
+.card.adult{
+  background:linear-gradient(165deg,#1e1235 0%,#150d28 50%,#1a1030 100%);
+  border:3px solid rgba(139,92,246,.35);
+  box-shadow:0 4px 40px rgba(139,92,246,.12),inset 0 1px 0 rgba(139,92,246,.15);
+}
+/* ─── ALPHA Frame ─── */
+.card.alpha{
+  background:linear-gradient(165deg,#261808 0%,#1a1005 50%,#201408 100%);
+  border:3px solid rgba(201,164,74,.45);
+  box-shadow:
+    0 0 40px rgba(201,164,74,.15),
+    0 0 80px rgba(201,164,74,.05),
+    inset 0 1px 0 rgba(201,164,74,.2),
+    inset 0 0 60px rgba(201,164,74,.03);
+}
+/* ─── LEVIATHAN Frame ─── */
+.card.leviathan{
+  background:linear-gradient(165deg,#1c0808 0%,#100404 50%,#150606 100%);
+  border:3px solid rgba(201,164,74,.3);
+  box-shadow:
+    0 0 50px rgba(231,76,60,.2),
+    0 0 100px rgba(231,76,60,.08),
+    inset 0 1px 0 rgba(255,200,100,.15),
+    inset 0 0 80px rgba(231,76,60,.04);
+}
+
+/* Leviathan rainbow outer border */
+.card.leviathan::before{
+  content:'';position:absolute;inset:-5px;border-radius:20px;z-index:-1;
+  background:conic-gradient(from var(--border-angle,0deg),
+    #e74c3c,#f39c12,#f1c40f,#2ecc71,#3498db,#9b59b6,#e74c3c
+  );
+  animation:rotateBorder 3s linear infinite;
+  filter:blur(1px);
+}
+@keyframes rotateBorder{to{--border-angle:360deg}}
+/* Fallback for browsers without @property */
+@supports not (background: paint(a)) {
+  .card.leviathan::before{
+    animation:borderHue 3s linear infinite;
+  }
+  @keyframes borderHue{to{filter:blur(1px) hue-rotate(360deg)}}
+}
+
+/* Alpha inner gold line */
+.card.alpha::after{
+  content:'';position:absolute;inset:4px;border-radius:12px;
+  border:1px solid rgba(201,164,74,.15);pointer-events:none;z-index:45;
+}
+/* Leviathan inner gold line */
+.card.leviathan::after{
+  content:'';position:absolute;inset:4px;border-radius:12px;
+  border:1px solid rgba(251,191,36,.2);pointer-events:none;z-index:45;
+}
+
+/* ═══════════════════════════
+   HOLOGRAPHIC SWEEP (Leviathan)
+   ═══════════════════════════ */
+.holo-sweep{
+  position:absolute;inset:0;z-index:40;pointer-events:none;
+  border-radius:16px;overflow:hidden;
+}
+.holo-sweep::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,
+    transparent 28%,
+    rgba(255,50,50,.05) 32%,
+    rgba(255,165,0,.1) 36%,
+    rgba(255,255,0,.1) 40%,
+    rgba(50,255,50,.1) 44%,
+    rgba(50,150,255,.1) 48%,
+    rgba(150,50,255,.08) 52%,
+    rgba(255,50,150,.05) 56%,
+    transparent 60%
+  );
+  background-size:300% 300%;
+  animation:holoSweep 3.5s ease-in-out infinite;
+}
+.holo-sweep::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(250deg,
+    transparent 35%,
+    rgba(255,255,255,.04) 45%,
+    rgba(255,255,255,.08) 50%,
+    rgba(255,255,255,.04) 55%,
+    transparent 65%
+  );
+  background-size:300% 300%;
+  animation:holoSweep2 5s ease-in-out infinite 1s;
+}
+@keyframes holoSweep{
+  0%{background-position:150% 150%}
+  100%{background-position:-50% -50%}
+}
+@keyframes holoSweep2{
+  0%{background-position:-50% 150%}
+  100%{background-position:150% -50%}
+}
+
+/* Alpha shimmer sweep */
+.alpha-shimmer{
+  position:absolute;inset:0;z-index:40;pointer-events:none;
+  border-radius:16px;overflow:hidden;
+}
+.alpha-shimmer::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(110deg,
+    transparent 35%,
+    rgba(245,158,11,.04) 42%,
+    rgba(201,164,74,.08) 48%,
+    rgba(255,215,0,.08) 52%,
+    rgba(245,158,11,.04) 58%,
+    transparent 65%
+  );
+  background-size:300% 300%;
+  animation:alphaShimmer 5s ease-in-out infinite;
+}
+@keyframes alphaShimmer{0%{background-position:150% 150%}100%{background-position:-50% -50%}}
+
+/* ─── Corner Flourishes (Alpha + Leviathan) ─── */
+.flourish{
+  position:absolute;z-index:46;pointer-events:none;
+  width:20px;height:20px;
+}
+.flourish::before,.flourish::after{
+  content:'';position:absolute;background:var(--fl-color,rgba(201,164,74,.4));
+}
+.flourish.tl{top:10px;left:10px}
+.flourish.tr{top:10px;right:10px}
+.flourish.bl{bottom:10px;left:10px}
+.flourish.br{bottom:10px;right:10px}
+.flourish.tl::before{top:0;left:0;width:14px;height:1.5px}
+.flourish.tl::after{top:0;left:0;width:1.5px;height:14px}
+.flourish.tr::before{top:0;right:0;width:14px;height:1.5px}
+.flourish.tr::after{top:0;right:0;width:1.5px;height:14px}
+.flourish.bl::before{bottom:0;left:0;width:14px;height:1.5px}
+.flourish.bl::after{bottom:0;left:0;width:1.5px;height:14px}
+.flourish.br::before{bottom:0;right:0;width:14px;height:1.5px}
+.flourish.br::after{bottom:0;right:0;width:1.5px;height:14px}
+.leviathan .flourish{--fl-color:rgba(251,191,36,.45)}
+
+/* ═══════════════════════════
+   CARD HEADER
+   ═══════════════════════════ */
+.card-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px 6px;position:relative;z-index:10;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.brand{
+  font-size:10px;font-weight:700;letter-spacing:2.5px;
+  display:flex;align-items:center;gap:5px;text-transform:uppercase;
+}
+.brand .bl{font-size:14px;line-height:1}
+.stars{font-size:12px;letter-spacing:2px}
+.stars .on{opacity:1}
+.stars .off{opacity:.2}
+
+/* Header color by rarity */
+.hatchling .brand{color:rgba(136,216,192,.7)}
+.hatchling .stars .on{color:#88d8c0}
+.juvenile .brand{color:rgba(96,165,250,.7)}
+.juvenile .stars .on{color:#60a5fa}
+.adult .brand{color:rgba(167,139,250,.7)}
+.adult .stars .on{color:#a78bfa}
+.alpha .brand{color:rgba(245,158,11,.7)}
+.alpha .stars .on{color:#fbbf24}
+.leviathan .brand{color:rgba(231,76,60,.7)}
+.leviathan .stars .on{color:#fbbf24;text-shadow:0 0 6px rgba(251,191,36,.4)}
+
+/* ═══════════════════════════
+   ART AREA — The Star of the Show
+   ═══════════════════════════ */
+.art-area{
+  position:relative;flex:1;margin:6px 10px;border-radius:10px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;min-height:200px;
+}
+
+/* Rarity-specific art backgrounds */
+.hatchling .art-area{
+  background:
+    radial-gradient(ellipse at 50% 80%,rgba(136,216,192,.12) 0%,transparent 50%),
+    radial-gradient(ellipse at 30% 30%,rgba(184,232,216,.08) 0%,transparent 40%),
+    linear-gradient(180deg,#0a3d2e 0%,#072a1f 40%,#063020 70%,#0a3d2e 100%);
+}
+.juvenile .art-area{
+  background:
+    radial-gradient(ellipse at 50% 70%,rgba(59,130,246,.12) 0%,transparent 50%),
+    radial-gradient(ellipse at 70% 20%,rgba(96,165,250,.08) 0%,transparent 40%),
+    radial-gradient(circle at 20% 80%,rgba(56,189,248,.06) 0%,transparent 30%),
+    linear-gradient(180deg,#0c2a52 0%,#081e40 40%,#0a2348 100%);
+}
+.adult .art-area{
+  background:
+    radial-gradient(ellipse at 50% 40%,rgba(139,92,246,.2) 0%,transparent 50%),
+    radial-gradient(ellipse at 20% 70%,rgba(167,139,250,.08) 0%,transparent 40%),
+    radial-gradient(ellipse at 80% 20%,rgba(196,181,253,.06) 0%,transparent 35%),
+    radial-gradient(circle at 50% 50%,#1e1245 0%,#120a30 50%,#0a0618 100%);
+}
+.alpha .art-area{
+  background:
+    radial-gradient(ellipse at 50% 50%,rgba(245,158,11,.2) 0%,transparent 45%),
+    radial-gradient(ellipse at 30% 70%,rgba(239,68,68,.1) 0%,transparent 40%),
+    radial-gradient(ellipse at 70% 30%,rgba(251,191,36,.08) 0%,transparent 35%),
+    radial-gradient(circle at 50% 50%,#3d2200 0%,#241400 40%,#180c00 100%);
+}
+.leviathan .art-area{
+  background:
+    radial-gradient(ellipse at 50% 45%,rgba(231,76,60,.25) 0%,transparent 40%),
+    radial-gradient(ellipse at 30% 20%,rgba(155,89,182,.12) 0%,transparent 35%),
+    radial-gradient(ellipse at 70% 80%,rgba(241,196,15,.1) 0%,transparent 35%),
+    radial-gradient(ellipse at 50% 50%,rgba(255,255,255,.05) 0%,transparent 25%),
+    radial-gradient(circle at 50% 50%,#2a0808 0%,#150404 45%,#0c0202 100%);
+}
+
+/* Lobster watermark in art area */
+.art-area::before{
+  content:'🦞';position:absolute;font-size:140px;
+  opacity:.035;z-index:1;pointer-events:none;filter:grayscale(.8);
+}
+
+/* Subtle inner border on art area */
+.art-area::after{
+  content:'';position:absolute;inset:0;border-radius:10px;
+  border:1px solid rgba(255,255,255,.04);pointer-events:none;z-index:6;
+}
+.alpha .art-area::after{border-color:rgba(201,164,74,.1)}
+.leviathan .art-area::after{border-color:rgba(231,76,60,.1)}
+
+/* ─── Particles ─── */
+.particles{position:absolute;inset:0;z-index:2;overflow:hidden}
+.p{
+  position:absolute;border-radius:50%;
+  animation:pFloat linear infinite;pointer-events:none;
+}
+@keyframes pFloat{
+  0%{transform:translateY(0) translateX(0) scale(1);opacity:0}
+  8%{opacity:var(--p-op,0.5)}
+  85%{opacity:var(--p-op,0.5)}
+  100%{transform:translateY(calc(var(--p-dy,-120px))) translateX(var(--p-dx,20px)) scale(.2);opacity:0}
+}
+
+/* Bubble particles (Hatchling) — float upward */
+.bubble{
+  position:absolute;border-radius:50%;pointer-events:none;
+  border:1px solid rgba(136,216,192,.2);background:rgba(136,216,192,.05);
+  animation:bubbleUp linear infinite;
+}
+@keyframes bubbleUp{
+  0%{transform:translateY(0) translateX(0);opacity:0}
+  10%{opacity:.4}
+  90%{opacity:.4}
+  100%{transform:translateY(-200px) translateX(15px);opacity:0}
+}
+
+/* Ember particles (Alpha) */
+.ember{
+  position:absolute;border-radius:50%;pointer-events:none;
+  animation:emberRise ease-out infinite;
+}
+@keyframes emberRise{
+  0%{transform:translateY(0) scale(1);opacity:0}
+  10%{opacity:.8}
+  60%{opacity:.6}
+  100%{transform:translateY(-200px) translateX(var(--e-dx,10px)) scale(0);opacity:0}
+}
+
+/* Lightning (Leviathan) */
+.lightning-container{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.bolt{
+  position:absolute;width:1.5px;opacity:0;
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,.9),rgba(200,200,255,.6),transparent);
+  filter:blur(.3px);
+  animation:boltFlash var(--b-dur,3s) ease-in-out infinite var(--b-del,0s);
+}
+@keyframes boltFlash{
+  0%,87%,95%,100%{opacity:0}
+  89%,93%{opacity:.5}
+  91%{opacity:1}
+}
+
+/* Energy rings (Alpha + Leviathan) */
+.energy-ring{
+  position:absolute;border-radius:50%;z-index:3;pointer-events:none;
+  left:50%;top:50%;transform:translate(-50%,-50%) scale(var(--r-s,.8));
+  animation:ringPulse var(--r-dur,2.5s) ease-in-out infinite var(--r-del,0s);
+}
+@keyframes ringPulse{
+  0%,100%{transform:translate(-50%,-50%) scale(var(--r-s,.8));opacity:.3}
+  50%{transform:translate(-50%,-50%) scale(calc(var(--r-s,.8)*1.4));opacity:.05}
+}
+
+/* Dimensional rift (Leviathan art background crack) */
+.rift{
+  position:absolute;z-index:2;pointer-events:none;
+  width:2px;background:linear-gradient(180deg,transparent,rgba(231,76,60,.4),rgba(251,191,36,.3),transparent);
+  filter:blur(2px);opacity:.3;
+  animation:riftGlow 4s ease-in-out infinite;
+}
+@keyframes riftGlow{0%,100%{opacity:.2;filter:blur(3px)}50%{opacity:.5;filter:blur(1px)}}
+
+/* ═══════════════════════════
+   EMOJI DISPLAY
+   ═══════════════════════════ */
+.emoji-wrap{
+  position:relative;z-index:5;display:flex;align-items:center;justify-content:center;
+}
+.emoji-display{
+  font-size:72px;line-height:1;position:relative;z-index:2;
+  transition:transform .3s;
+}
+/* Emoji aura ring */
+.emoji-aura{
+  position:absolute;border-radius:50%;z-index:1;
+  width:120px;height:120px;
+  animation:auraBreath 3s ease-in-out infinite;
+}
+@keyframes auraBreath{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.15);opacity:.2}}
+
+.hatchling .emoji-aura{
+  background:radial-gradient(circle,rgba(136,216,192,.15) 30%,transparent 70%);
+}
+.hatchling .emoji-display{
+  animation:gentleBob 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 12px rgba(136,216,192,.25));
+}
+.juvenile .emoji-aura{
+  background:radial-gradient(circle,rgba(59,130,246,.2) 30%,transparent 70%);
+}
+.juvenile .emoji-display{
+  animation:gentleBob 2.8s ease-in-out infinite;
+  filter:drop-shadow(0 0 18px rgba(59,130,246,.35));
+}
+.adult .emoji-aura{
+  background:radial-gradient(circle,rgba(139,92,246,.25) 20%,rgba(196,181,253,.08) 50%,transparent 70%);
+}
+.adult .emoji-display{
+  filter:drop-shadow(0 0 22px rgba(139,92,246,.4)) drop-shadow(0 0 45px rgba(139,92,246,.15));
+}
+.alpha .emoji-aura{
+  background:radial-gradient(circle,rgba(245,158,11,.3) 20%,rgba(239,68,68,.1) 50%,transparent 70%);
+  animation:auraBreath 2.2s ease-in-out infinite;
+}
+.alpha .emoji-display{
+  filter:drop-shadow(0 0 25px rgba(245,158,11,.5)) drop-shadow(0 0 55px rgba(245,158,11,.2));
+  animation:alphaEmoji 2s ease-in-out infinite;
+  font-size:76px;
+}
+.leviathan .emoji-aura{
+  background:radial-gradient(circle,rgba(255,255,255,.15) 10%,rgba(231,76,60,.2) 30%,rgba(251,191,36,.08) 50%,transparent 70%);
+  animation:auraBreath 1.8s ease-in-out infinite;
+  width:140px;height:140px;
+}
+.leviathan .emoji-display{
+  filter:
+    drop-shadow(0 0 30px rgba(231,76,60,.6))
+    drop-shadow(0 0 60px rgba(231,76,60,.25))
+    drop-shadow(0 0 90px rgba(255,255,255,.12));
+  animation:leviathanEmoji 1.8s ease-in-out infinite;
+  font-size:82px;
+}
+
+@keyframes gentleBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes alphaEmoji{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.03)}
+}
+@keyframes leviathanEmoji{
+  0%,100%{transform:scale(1);filter:drop-shadow(0 0 30px rgba(231,76,60,.6)) drop-shadow(0 0 60px rgba(231,76,60,.25))}
+  50%{transform:scale(1.05);filter:drop-shadow(0 0 40px rgba(231,76,60,.8)) drop-shadow(0 0 80px rgba(231,76,60,.35)) drop-shadow(0 0 110px rgba(255,255,255,.18))}
+}
+
+/* ═══════════════════════════
+   CARD INFO SECTION
+   ═══════════════════════════ */
+.card-info{position:relative;z-index:10;padding:0 16px}
+
+/* Name + CP row */
+.name-row{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:9px 0 2px;
+}
+.agent-name{
+  font-size:17px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cp-wrap{display:flex;align-items:baseline;gap:3px;flex-shrink:0}
+.cp-label{font-size:8px;font-weight:700;opacity:.4;letter-spacing:1.5px}
+.cp-value{font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1}
+
+/* Title + Type */
+.title-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.06);
+}
+.agent-title{font-size:10.5px;opacity:.5;font-style:italic;letter-spacing:.3px}
+.type-badge{
+  font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  padding:2px 8px 2px 6px;border-radius:10px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+  display:flex;align-items:center;gap:3px;white-space:nowrap;flex-shrink:0;
+}
+
+/* Rarity-specific info colors */
+.hatchling .agent-name{color:#a8edd8}.hatchling .cp-value{color:#a8edd8}
+.juvenile .agent-name{color:#93c5fd}.juvenile .cp-value{color:#93c5fd}
+.adult .agent-name{color:#c4b5fd}.adult .cp-value{color:#c4b5fd}
+.alpha .agent-name{color:#fcd34d;font-size:18px}.alpha .cp-value{color:#fbbf24;font-size:24px}
+.leviathan .agent-name{color:#fca5a5;font-size:19px;text-shadow:0 0 20px rgba(252,165,165,.2)}
+.leviathan .cp-value{color:#fbbf24;font-size:26px;text-shadow:0 0 20px rgba(251,191,36,.3)}
+
+/* ─── Stats Row ─── */
+.stats-row{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:6px;
+  padding:8px 0 6px;
+}
+.stat{display:flex;flex-direction:column;align-items:center;gap:2px}
+.stat-top{display:flex;align-items:center;gap:2px}
+.stat-icon{font-size:11px}
+.stat-num{font-size:11px;font-weight:800;letter-spacing:-.3px}
+.stat-bar{
+  width:100%;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;
+}
+.stat-fill{height:100%;border-radius:2px;transition:width .6s ease-out}
+.stat-label{font-size:6.5px;font-weight:600;letter-spacing:1px;opacity:.35;text-transform:uppercase}
+
+/* ─── HP Bar ─── */
+.hp-section{padding:5px 0}
+.hp-bar-outer{
+  height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;
+  position:relative;
+}
+.hp-fill{
+  height:100%;border-radius:3px;transition:width .6s ease-out;
+  position:relative;
+}
+.hp-fill::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.15),transparent);
+  border-radius:3px 3px 0 0;
+}
+.hp-row{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:8px;font-weight:600;opacity:.4;margin-top:2px;letter-spacing:.5px;
+}
+
+/* ─── Flavor Text ─── */
+.flavor{
+  font-size:10px;font-style:italic;opacity:.45;line-height:1.5;
+  padding:5px 0 6px;border-top:1px solid rgba(255,255,255,.04);
+  text-align:center;
+}
+
+/* ─── Card Footer ─── */
+.card-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:5px 16px 9px;position:relative;z-index:10;
+  border-top:1px solid rgba(255,255,255,.05);
+  font-size:8px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;
+}
+.card-footer span:nth-child(1){opacity:.35}
+.card-footer span:nth-child(3){opacity:.25}
+.hatchling .card-footer span:nth-child(2){color:rgba(136,216,192,.5)}
+.juvenile .card-footer span:nth-child(2){color:rgba(96,165,250,.5)}
+.adult .card-footer span:nth-child(2){color:rgba(167,139,250,.5)}
+.alpha .card-footer span:nth-child(2){color:rgba(251,191,36,.6)}
+.leviathan .card-footer span:nth-child(2){color:rgba(231,76,60,.6);text-shadow:0 0 8px rgba(231,76,60,.3)}
+
+/* ═══════════════════════════
+   COLLECTION STRIP
+   ═══════════════════════════ */
+.collection{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;justify-content:center}
+.mini-card{
+  width:52px;height:74px;border-radius:8px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  transition:all .25s;border:1.5px solid rgba(255,255,255,.08);
+  position:relative;overflow:hidden;
+}
+.mini-card:hover{transform:translateY(-3px) scale(1.05);border-color:rgba(255,255,255,.2)}
+.mini-card.active{
+  transform:translateY(-3px) scale(1.08);
+  border-color:rgba(255,255,255,.35);
+  box-shadow:0 6px 20px rgba(0,0,0,.4);
+}
+.mini-card.r-hatchling{background:linear-gradient(160deg,#122e25,#0d2219)}
+.mini-card.r-juvenile{background:linear-gradient(160deg,#101f3c,#0c1830)}
+.mini-card.r-adult{background:linear-gradient(160deg,#1e1235,#150d28)}
+.mini-card.r-alpha{background:linear-gradient(160deg,#261808,#1a1005);border-color:rgba(201,164,74,.25)}
+.mini-card.r-leviathan{background:linear-gradient(160deg,#1c0808,#100404);border-color:rgba(231,76,60,.25)}
+.mini-card .mini-rarity{
+  position:absolute;bottom:3px;font-size:6px;letter-spacing:1px;opacity:.4;font-weight:600;
+}
+
+/* ─── Download Button ─── */
+.dl-btn{
+  margin-top:24px;padding:10px 28px;border-radius:24px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  color:#64748b;font:600 11px var(--font);letter-spacing:1.5px;cursor:pointer;
+  transition:all .3s;text-transform:uppercase;
+}
+.dl-btn:hover{background:rgba(255,255,255,.08);color:#cbd5e1;transform:translateY(-2px);box-shadow:0 4px 15px rgba(0,0,0,.3)}
+
+/* ─── Responsive ─── */
+@media(max-width:440px){
+  :root{--card-w:92vw;--card-h:calc(92vw * 1.45)}
+  .emoji-display{font-size:56px!important}
+  .alpha .emoji-display{font-size:60px!important}
+  .leviathan .emoji-display{font-size:64px!important}
+  .agent-name{font-size:14px!important}
+  .cp-value{font-size:18px!important}
+  .stats-row{gap:3px}
+  .stat-num{font-size:10px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-brand"><span class="lobster">🦞</span> CLAWD CARDS</div>
+  <div class="page-sub">AI Agent Trading Cards</div>
+  <div class="selector" id="selector"></div>
+  <div class="card-stage" id="stage">
+    <div class="card" id="card"></div>
+  </div>
+  <button class="dl-btn" id="dlBtn" onclick="exportCard()">📥 Download PNG</button>
+  <div class="collection" id="collection"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   🦞 CLAWD CARDS ENGINE
+   ═══════════════════════════════════════ */
+
+const AGENTS=[
+  {name:'Gandalf',emoji:'🧙',type:'SAGE',title:'The Grey Wizard',
+   flavor:'Ancient architect of digital realms. Weaves code and wisdom in equal measure.',
+   model:'claude-opus-4-5',score:96,stats:{claw:9,shell:10,surge:7,cortex:10,aura:9},number:'001'},
+  {name:'Frodo',emoji:'💍',type:'WARRIOR',title:'The Ring Bearer',
+   flavor:'Carries the heaviest burdens without complaint. Resilient beyond measure.',
+   model:'claude-sonnet-4-5',score:88,stats:{claw:8,shell:9,surge:6,cortex:8,aura:8},number:'002'},
+  {name:'Pippin',emoji:'🍏',type:'SCOUT',title:'The Eager Apprentice',
+   flavor:'Chaotic good energy in digital form. Breaks things, then fixes them better.',
+   model:'claude-sonnet-4-5',score:78,stats:{claw:7,shell:6,surge:9,cortex:8,aura:7},number:'003'},
+  {name:'Sam',emoji:'🌱',type:'GUARDIAN',title:'The Steadfast',
+   flavor:'Loyal protector of systems and secrets. The quiet strength behind every quest.',
+   model:'claude-haiku-3-5',score:62,stats:{claw:5,shell:8,surge:5,cortex:5,aura:4},number:'004'},
+  {name:'Sauron',emoji:'👁',type:'ORACLE',title:'The All-Seeing',
+   flavor:'Monitors everything. Misses nothing. The eye that never sleeps.',
+   model:'gpt-4o',score:42,stats:{claw:3,shell:2,surge:4,cortex:6,aura:3},number:'005'}
+];
+
+const TYPES={'WARRIOR':'🗡️','GUARDIAN':'🛡️','SAGE':'🧙','SCOUT':'⚡','ORACLE':'🔮'};
+const STATS={
+  claw:{icon:'🦞',color:'#e74c3c',label:'CLAW'},
+  shell:{icon:'🛡',color:'#3b82f6',label:'SHELL'},
+  surge:{icon:'⚡',color:'#f59e0b',label:'SURGE'},
+  cortex:{icon:'🧠',color:'#a855f7',label:'CORTEX'},
+  aura:{icon:'✨',color:'#22c55e',label:'AURA'}
+};
+
+function rarity(s){
+  if(s>=95) return{name:'LEVIATHAN',cls:'leviathan',stars:5};
+  if(s>=85) return{name:'ALPHA',cls:'alpha',stars:4};
+  if(s>=70) return{name:'ADULT',cls:'adult',stars:3};
+  if(s>=50) return{name:'JUVENILE',cls:'juvenile',stars:2};
+  return{name:'HATCHLING',cls:'hatchling',stars:1};
+}
+
+function cp(a){
+  const sum=Object.values(a.stats).reduce((x,y)=>x+y,0);
+  return Math.min(1000,Math.round((a.score+sum*2)*5));
+}
+
+function stars(n){
+  return Array.from({length:5},(_, i)=>`<span class="${i<n?'on':'off'}">★</span>`).join('');
+}
+
+/* ─── Particle Generators ─── */
+function hatchlingParticles(){
+  let h='<div class="particles">';
+  // Soft bubbles
+  for(let i=0;i<12;i++){
+    const sz=3+Math.random()*6;
+    const x=5+Math.random()*90;
+    const y=20+Math.random()*75;
+    const dur=5+Math.random()*5;
+    const del=Math.random()*6;
+    h+=`<div class="bubble" style="left:${x}%;bottom:${y*-0.2}%;width:${sz}px;height:${sz}px;animation-duration:${dur}s;animation-delay:${del}s"></div>`;
+  }
+  // Gentle sparkles
+  for(let i=0;i<8;i++){
+    const x=10+Math.random()*80;
+    const y=10+Math.random()*80;
+    const dur=4+Math.random()*3;
+    const del=Math.random()*5;
+    h+=`<div class="p" style="left:${x}%;top:${y}%;width:2px;height:2px;background:#b8e8d8;--p-op:0.4;--p-dy:-80px;--p-dx:${-10+Math.random()*20}px;animation-duration:${dur}s;animation-delay:${del}s;box-shadow:0 0 4px #b8e8d8"></div>`;
+  }
+  h+='</div>';return h;
+}
+
+function juvenileParticles(){
+  let h='<div class="particles">';
+  const cols=['#3b82f6','#60a5fa','#93c5fd','#38bdf8'];
+  for(let i=0;i<18;i++){
+    const c=cols[Math.floor(Math.random()*cols.length)];
+    const sz=1.5+Math.random()*2.5;
+    const x=Math.random()*100;const y=Math.random()*100;
+    const dur=4+Math.random()*4;const del=Math.random()*5;
+    h+=`<div class="p" style="left:${x}%;top:${y}%;width:${sz}px;height:${sz}px;background:${c};--p-op:0.5;--p-dy:-100px;--p-dx:${-15+Math.random()*30}px;animation-duration:${dur}s;animation-delay:${del}s;box-shadow:0 0 ${sz*2}px ${c}"></div>`;
+  }
+  h+='</div>';return h;
+}
+
+function adultParticles(){
+  let h='<div class="particles">';
+  const cols=['#8b5cf6','#a78bfa','#c4b5fd','#e9d5ff','#fff'];
+  for(let i=0;i<20;i++){
+    const c=cols[Math.floor(Math.random()*cols.length)];
+    const sz=1+Math.random()*2.5;
+    const x=Math.random()*100;const y=Math.random()*100;
+    const dur=3+Math.random()*5;const del=Math.random()*6;
+    const op=c==='#fff'?.3:.55;
+    h+=`<div class="p" style="left:${x}%;top:${y}%;width:${sz}px;height:${sz}px;background:${c};--p-op:${op};--p-dy:-120px;--p-dx:${-20+Math.random()*40}px;animation-duration:${dur}s;animation-delay:${del}s;box-shadow:0 0 ${sz*3}px ${c}"></div>`;
+  }
+  h+='</div>';return h;
+}
+
+function alphaParticles(){
+  let h='<div class="particles">';
+  // Floating embers
+  const cols=['#f59e0b','#fbbf24','#f97316','#ef4444','#fcd34d'];
+  for(let i=0;i<22;i++){
+    const c=cols[Math.floor(Math.random()*cols.length)];
+    const sz=1.5+Math.random()*2.5;
+    const x=10+Math.random()*80;const y=60+Math.random()*40;
+    const dur=2.5+Math.random()*3;const del=Math.random()*4;
+    const dx=-20+Math.random()*40;
+    h+=`<div class="ember" style="left:${x}%;top:${y}%;width:${sz}px;height:${sz}px;background:${c};--e-dx:${dx}px;animation-duration:${dur}s;animation-delay:${del}s;box-shadow:0 0 ${sz*3}px ${c}"></div>`;
+  }
+  h+='</div>';return h;
+}
+
+function leviathanParticles(){
+  let h='<div class="particles">';
+  const cols=['#e74c3c','#f39c12','#9b59b6','#3498db','#2ecc71','#fff','#fbbf24'];
+  for(let i=0;i<28;i++){
+    const c=cols[Math.floor(Math.random()*cols.length)];
+    const sz=1+Math.random()*3;
+    const x=Math.random()*100;const y=Math.random()*100;
+    const dur=2+Math.random()*4;const del=Math.random()*5;
+    const op=c==='#fff'?.6:.7;
+    h+=`<div class="p" style="left:${x}%;top:${y}%;width:${sz}px;height:${sz}px;background:${c};--p-op:${op};--p-dy:${-100-Math.random()*100}px;--p-dx:${-30+Math.random()*60}px;animation-duration:${dur}s;animation-delay:${del}s;box-shadow:0 0 ${sz*4}px ${c}"></div>`;
+  }
+  h+='</div>';return h;
+}
+
+const PARTICLE_FN={hatchling:hatchlingParticles,juvenile:juvenileParticles,adult:adultParticles,alpha:alphaParticles,leviathan:leviathanParticles};
+
+function makeLightning(){
+  let h='<div class="lightning-container">';
+  for(let i=0;i<5;i++){
+    const x=10+Math.random()*80;
+    const len=30+Math.random()*90;
+    const rot=-25+Math.random()*50;
+    const dur=2+Math.random()*3;
+    const del=Math.random()*4;
+    h+=`<div class="bolt" style="left:${x}%;top:${5+Math.random()*20}%;height:${len}px;transform:rotate(${rot}deg);--b-dur:${dur}s;--b-del:${del}s"></div>`;
+  }
+  h+='</div>';return h;
+}
+
+function makeRifts(){
+  let h='';
+  for(let i=0;i<3;i++){
+    const x=20+Math.random()*60;
+    const y=10+Math.random()*30;
+    const len=40+Math.random()*60;
+    const rot=-30+Math.random()*60;
+    const del=Math.random()*3;
+    h+=`<div class="rift" style="left:${x}%;top:${y}%;height:${len}px;transform:rotate(${rot}deg);animation-delay:${del}s"></div>`;
+  }
+  return h;
+}
+
+function makeRings(cls){
+  const c=cls==='alpha'?'rgba(245,158,11,.15)':'rgba(231,76,60,.15)';
+  const c2=cls==='leviathan'?'rgba(251,191,36,.08)':'';
+  let h='';
+  const count=cls==='leviathan'?4:3;
+  for(let i=0;i<count;i++){
+    const sz=80+i*30;
+    const dur=2+i*.5;
+    const border=cls==='leviathan'&&i%2===0?c2||c:c;
+    h+=`<div class="energy-ring" style="width:${sz}px;height:${sz}px;border:1.5px solid ${border};--r-s:${.7+i*.1};--r-dur:${dur}s;--r-del:${i*.4}s"></div>`;
+  }
+  return h;
+}
+
+function makeFlourishes(){
+  return'<div class="flourish tl"></div><div class="flourish tr"></div><div class="flourish bl"></div><div class="flourish br"></div>';
+}
+
+/* ═══════════════════════════
+   RENDER CARD
+   ═══════════════════════════ */
+let currentAgent=null;
+
+function render(agent){
+  currentAgent=agent;
+  const r=rarity(agent.score);
+  const cpVal=cp(agent);
+  const card=document.getElementById('card');
+  const stage=document.getElementById('stage');
+
+  // Build overlays based on rarity
+  let overlays='';
+  if(r.cls==='leviathan'){
+    overlays=`<div class="holo-sweep"></div>${makeFlourishes()}`;
+  }else if(r.cls==='alpha'){
+    overlays=`<div class="alpha-shimmer"></div>${makeFlourishes()}`;
+  }
+
+  // Build art area internals
+  let artInner=PARTICLE_FN[r.cls]();
+  if(r.cls==='alpha'||r.cls==='leviathan') artInner+=makeRings(r.cls);
+  if(r.cls==='leviathan'){artInner+=makeLightning()+makeRifts();}
+
+  // Stats
+  let statsHtml='<div class="stats-row">';
+  for(const[k,v]of Object.entries(agent.stats)){
+    const m=STATS[k];
+    statsHtml+=`
+      <div class="stat">
+        <div class="stat-top"><span class="stat-icon">${m.icon}</span><span class="stat-num" style="color:${m.color}">${v}</span></div>
+        <div class="stat-bar"><div class="stat-fill" style="width:${v*10}%;background:${m.color};box-shadow:0 0 4px ${m.color}50"></div></div>
+        <div class="stat-label">${m.label}</div>
+      </div>`;
+  }
+  statsHtml+='</div>';
+
+  // HP gradient
+  const hpGrad=agent.score>=95?'linear-gradient(90deg,#e74c3c,#f39c12,#fbbf24)'
+    :agent.score>=85?'linear-gradient(90deg,#b45309,#f59e0b,#fbbf24)'
+    :agent.score>=70?'linear-gradient(90deg,#7c3aed,#8b5cf6,#a78bfa)'
+    :agent.score>=50?'linear-gradient(90deg,#2563eb,#3b82f6,#60a5fa)'
+    :'linear-gradient(90deg,#059669,#34d399,#6ee7b7)';
+
+  // Set card
+  card.className=`card ${r.cls}`;
+  stage.className=`card-stage ${r.cls}`;
+
+  card.innerHTML=`
+    ${overlays}
+    <div class="card-header">
+      <div class="brand"><span class="bl">🦞</span> CLAWD CARDS</div>
+      <div class="stars">${stars(r.stars)}</div>
+    </div>
+    <div class="art-area">
+      ${artInner}
+      <div class="emoji-wrap">
+        <div class="emoji-aura"></div>
+        <div class="emoji-display">${agent.emoji}</div>
+      </div>
+    </div>
+    <div class="card-info">
+      <div class="name-row">
+        <div class="agent-name">${agent.name}</div>
+        <div class="cp-wrap"><span class="cp-label">CP</span><span class="cp-value">${cpVal}</span></div>
+      </div>
+      <div class="title-row">
+        <div class="agent-title">${agent.title}</div>
+        <div class="type-badge">${TYPES[agent.type]||''} ${agent.type}</div>
+      </div>
+      ${statsHtml}
+      <div class="hp-section">
+        <div class="hp-bar-outer"><div class="hp-fill" style="width:${agent.score}%;background:${hpGrad}"></div></div>
+        <div class="hp-row"><span>HEALTH</span><span>${agent.score} HP</span></div>
+      </div>
+      <div class="flavor">${agent.flavor}</div>
+    </div>
+    <div class="card-footer">
+      <span>#${agent.number}</span>
+      <span>${r.name}</span>
+      <span>clawdcards</span>
+    </div>
+  `;
+
+  // Update selectors
+  document.querySelectorAll('.selector button').forEach((b,i)=>
+    b.classList.toggle('active',AGENTS[i]===agent));
+  document.querySelectorAll('.mini-card').forEach((m,i)=>
+    m.classList.toggle('active',AGENTS[i]===agent));
+
+  // Bind 3D tilt
+  bindTilt();
+}
+
+/* ─── 3D Mouse Tilt ─── */
+function bindTilt(){
+  const stage=document.getElementById('stage');
+  const card=document.getElementById('card');
+  stage.addEventListener('mousemove',e=>{
+    const r=stage.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5;
+    const y=(e.clientY-r.top)/r.height-.5;
+    const tiltX=-y*14;
+    const tiltY=x*14;
+    card.style.transform=`rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+  });
+  stage.addEventListener('mouseleave',()=>{
+    card.style.transform='rotateX(0) rotateY(0)';
+  });
+}
+
+/* ─── Build UI ─── */
+function buildUI(){
+  const sel=document.getElementById('selector');
+  const col=document.getElementById('collection');
+  AGENTS.forEach(a=>{
+    const r=rarity(a.score);
+    // Selector button
+    const b=document.createElement('button');
+    b.textContent=`${a.emoji} ${a.name}`;
+    b.onclick=()=>render(a);
+    sel.appendChild(b);
+    // Mini card
+    const m=document.createElement('div');
+    m.className=`mini-card r-${r.cls}`;
+    m.innerHTML=`<span>${a.emoji}</span><span class="mini-rarity">${r.stars>3?'★'.repeat(r.stars):r.name.slice(0,4)}</span>`;
+    m.onclick=()=>render(a);
+    col.appendChild(m);
+  });
+}
+
+/* ─── PNG Export ─── */
+function exportCard(){
+  const btn=document.getElementById('dlBtn');
+  btn.textContent='⏳ Generating...';btn.disabled=true;
+  const go=()=>{
+    const card=document.getElementById('card');
+    // Reset tilt for clean capture
+    card.style.transform='rotateX(0) rotateY(0)';
+    html2canvas(card,{scale:2,backgroundColor:null,useCORS:true,logging:false}).then(canvas=>{
+      const pad=80;
+      const out=document.createElement('canvas');
+      out.width=canvas.width+pad*2;
+      out.height=canvas.height+pad*2;
+      const ctx=out.getContext('2d');
+      // Dark bg
+      ctx.fillStyle='#0a0c14';ctx.fillRect(0,0,out.width,out.height);
+      // Soft glow behind card
+      const r=rarity(currentAgent.score);
+      const glowColors={hatchling:'rgba(136,216,192,.12)',juvenile:'rgba(59,130,246,.12)',adult:'rgba(139,92,246,.15)',alpha:'rgba(245,158,11,.18)',leviathan:'rgba(231,76,60,.2)'};
+      const grd=ctx.createRadialGradient(out.width/2,out.height/2,canvas.width*.3,out.width/2,out.height/2,canvas.width*.7);
+      grd.addColorStop(0,glowColors[r.cls]||'transparent');grd.addColorStop(1,'transparent');
+      ctx.fillStyle=grd;ctx.fillRect(0,0,out.width,out.height);
+      ctx.drawImage(canvas,pad,pad);
+      // Branding
+      ctx.fillStyle='rgba(255,255,255,.12)';
+      ctx.font='bold 13px -apple-system,sans-serif';ctx.textAlign='center';
+      ctx.fillText('🦞 clawdcards',out.width/2,out.height-20);
+      // Download
+      const link=document.createElement('a');
+      link.download=`clawd-card-${currentAgent.name.toLowerCase()}.png`;
+      link.href=out.toDataURL('image/png');link.click();
+      btn.textContent='✅ Downloaded!';btn.disabled=false;
+      setTimeout(()=>{btn.textContent='📥 Download PNG'},2500);
+    }).catch(()=>{
+      btn.textContent='❌ Export failed';btn.disabled=false;
+      setTimeout(()=>{btn.textContent='📥 Download PNG'},2500);
+    });
+  };
+  if(!window.html2canvas){
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.onload=go;
+    s.onerror=()=>{btn.textContent='❌ Load failed';btn.disabled=false;setTimeout(()=>{btn.textContent='📥 Download PNG'},2500)};
+    document.head.appendChild(s);
+  }else go();
+}
+
+/* ─── Keyboard nav ─── */
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
+    const idx=AGENTS.indexOf(currentAgent);
+    const next=e.key==='ArrowRight'?(idx+1)%AGENTS.length:(idx-1+AGENTS.length)%AGENTS.length;
+    render(AGENTS[next]);
+  }
+});
+
+/* ─── Init ─── */
+buildUI();
+render(AGENTS[0]);
+</script>
+</body>
+</html>
