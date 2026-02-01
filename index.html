@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🦞 Clawd Cards — AI Agent Trading Cards</title>
+<title>🦞 Claw Cards — AI Agent Trading Cards</title>
 <style>
 /* ═══════════════════════════════════════
-   🦞 CLAWD CARDS — Trading Card System
+   🦞 CLAW CARDS — Trading Card System
    Zero dependencies. Pure CSS magic.
    ═══════════════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -565,30 +565,7 @@ body::before{
 .alpha .card-footer span:nth-child(2){color:rgba(251,191,36,.6)}
 .leviathan .card-footer span:nth-child(2){color:rgba(231,76,60,.6);text-shadow:0 0 8px rgba(231,76,60,.3)}
 
-/* ═══════════════════════════
-   COLLECTION STRIP
-   ═══════════════════════════ */
-.collection{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;justify-content:center}
-.mini-card{
-  width:52px;height:74px;border-radius:8px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;font-size:22px;
-  transition:all .25s;border:1.5px solid rgba(255,255,255,.08);
-  position:relative;overflow:hidden;
-}
-.mini-card:hover{transform:translateY(-3px) scale(1.05);border-color:rgba(255,255,255,.2)}
-.mini-card.active{
-  transform:translateY(-3px) scale(1.08);
-  border-color:rgba(255,255,255,.35);
-  box-shadow:0 6px 20px rgba(0,0,0,.4);
-}
-.mini-card.r-hatchling{background:linear-gradient(160deg,#122e25,#0d2219)}
-.mini-card.r-juvenile{background:linear-gradient(160deg,#101f3c,#0c1830)}
-.mini-card.r-adult{background:linear-gradient(160deg,#1e1235,#150d28)}
-.mini-card.r-alpha{background:linear-gradient(160deg,#261808,#1a1005);border-color:rgba(201,164,74,.25)}
-.mini-card.r-leviathan{background:linear-gradient(160deg,#1c0808,#100404);border-color:rgba(231,76,60,.25)}
-.mini-card .mini-rarity{
-  position:absolute;bottom:3px;font-size:6px;letter-spacing:1px;opacity:.4;font-weight:600;
-}
+/* Collection strip removed — moved to gallery page */
 
 /* ─── Download Button ─── */
 .dl-btn{
@@ -614,19 +591,18 @@ body::before{
 </head>
 <body>
 <div class="page">
-  <div class="page-brand"><span class="lobster">🦞</span> CLAWD CARDS</div>
+  <div class="page-brand"><span class="lobster">🦞</span> CLAW CARDS</div>
   <div class="page-sub">AI Agent Trading Cards</div>
   <div class="selector" id="selector"></div>
   <div class="card-stage" id="stage">
     <div class="card" id="card"></div>
   </div>
   <button class="dl-btn" id="dlBtn" onclick="exportCard()">📥 Download PNG</button>
-  <div class="collection" id="collection"></div>
 </div>
 
 <script>
 /* ═══════════════════════════════════════
-   🦞 CLAWD CARDS ENGINE
+   🦞 CLAW CARDS ENGINE
    ═══════════════════════════════════════ */
 
 const AGENTS=[
@@ -850,7 +826,7 @@ function render(agent){
   card.innerHTML=`
     ${overlays}
     <div class="card-header">
-      <div class="brand"><span class="bl">🦞</span> CLAWD CARDS</div>
+      <div class="brand"><span class="bl">🦞</span> CLAW CARDS</div>
       <div class="stars">${stars(r.stars)}</div>
     </div>
     <div class="art-area">
@@ -879,15 +855,14 @@ function render(agent){
     <div class="card-footer">
       <span>#${agent.number}</span>
       <span>${r.name}</span>
-      <span>clawdcards</span>
+      <span>clawcards</span>
     </div>
   `;
 
   // Update selectors
   document.querySelectorAll('.selector button').forEach((b,i)=>
     b.classList.toggle('active',AGENTS[i]===agent));
-  document.querySelectorAll('.mini-card').forEach((m,i)=>
-    m.classList.toggle('active',AGENTS[i]===agent));
+  // mini-card collection removed — gallery page
 
   // Bind 3D tilt
   bindTilt();
@@ -913,7 +888,6 @@ function bindTilt(){
 /* ─── Build UI ─── */
 function buildUI(){
   const sel=document.getElementById('selector');
-  const col=document.getElementById('collection');
   AGENTS.forEach(a=>{
     const r=rarity(a.score);
     // Selector button
@@ -921,12 +895,7 @@ function buildUI(){
     b.textContent=`${a.emoji} ${a.name}`;
     b.onclick=()=>render(a);
     sel.appendChild(b);
-    // Mini card
-    const m=document.createElement('div');
-    m.className=`mini-card r-${r.cls}`;
-    m.innerHTML=`<span>${a.emoji}</span><span class="mini-rarity">${r.stars>3?'★'.repeat(r.stars):r.name.slice(0,4)}</span>`;
-    m.onclick=()=>render(a);
-    col.appendChild(m);
+    // Collection strip removed — moved to gallery
   });
 }
 
@@ -956,10 +925,10 @@ function exportCard(){
       // Branding
       ctx.fillStyle='rgba(255,255,255,.12)';
       ctx.font='bold 13px -apple-system,sans-serif';ctx.textAlign='center';
-      ctx.fillText('🦞 clawdcards',out.width/2,out.height-20);
+      ctx.fillText('🦞 clawcards',out.width/2,out.height-20);
       // Download
       const link=document.createElement('a');
-      link.download=`clawd-card-${currentAgent.name.toLowerCase()}.png`;
+      link.download=`claw-card-${currentAgent.name.toLowerCase()}.png`;
       link.href=out.toDataURL('image/png');link.click();
       btn.textContent='✅ Downloaded!';btn.disabled=false;
       setTimeout(()=>{btn.textContent='📥 Download PNG'},2500);
