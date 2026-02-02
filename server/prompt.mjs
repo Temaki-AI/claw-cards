@@ -19,14 +19,19 @@ const TYPE_MODIFIERS = {
   ORACLE: 'all-seeing eye, future vision, data streams, prophetic',
 };
 
-const BASE_PROMPT = 'epic trading card art, digital illustration, centered character portrait, dark background';
-const SUFFIX = 'masterpiece quality, no text, vertical portrait composition, 2:3 aspect ratio';
+const BASE_PROMPT = 'epic digital illustration, centered character portrait, dark background, frameless, borderless';
+const SUFFIX = 'masterpiece quality, absolutely no text, no words, no letters, no frame, no border, no card frame, vertical portrait composition, 2:3 aspect ratio';
+const NEGATIVE = 'text, words, letters, numbers, writing, frame, border, card border, card frame, UI elements, watermark, signature';
 
 /**
  * Generate an image prompt from card data
  * @param {Object} cardData - Card row from database or publish payload
  * @returns {string} Prompt string optimized for Banana Pro / SDXL
  */
+export function getNegativePrompt() {
+  return NEGATIVE;
+}
+
 export function generatePrompt(cardData) {
   const parts = [BASE_PROMPT];
 
