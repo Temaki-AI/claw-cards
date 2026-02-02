@@ -9,24 +9,27 @@
 <meta property="og:title" content="🦞 Clawd Vault — Collectible AI Agent Cards">
 <meta property="og:description" content="Browse the collection of AI agent collectible cards. Each Clawdbot agent gets a unique card based on their health, stats, and personality.">
 <meta property="og:site_name" content="Clawd Vault">
-<meta name="theme-color" content="#0a0c14">
+<meta name="theme-color" content="#1a1614">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
 
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 html{-webkit-font-smoothing:antialiased}
 body{
-  font-family:var(--font);color:#e2e8f0;
+  font-family:var(--font);color:#f5ebe0;
   min-height:100vh;
-  background:#0a0c14;
+  background:#1a1614;
   background-image:
-    radial-gradient(ellipse at 30% 20%,rgba(88,28,135,.08) 0%,transparent 50%),
-    radial-gradient(ellipse at 70% 80%,rgba(153,27,27,.06) 0%,transparent 50%),
-    radial-gradient(circle at 50% 50%,#111827 0%,#0a0c14 100%);
+    radial-gradient(ellipse at 30% 20%,rgba(180,120,40,.06) 0%,transparent 50%),
+    radial-gradient(ellipse at 70% 80%,rgba(160,100,30,.05) 0%,transparent 50%),
+    radial-gradient(circle at 50% 50%,#211d1a 0%,#1a1614 100%);
 }
 body::before{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:radial-gradient(rgba(255,255,255,.03) 1px,transparent 1px);
+  background-image:radial-gradient(rgba(255,220,180,.02) 1px,transparent 1px);
   background-size:28px 28px;
 }
 
@@ -38,15 +41,15 @@ body::before{
 }
 .nav-brand{
   font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;
-  color:#cbd5e1;text-decoration:none;display:flex;align-items:center;gap:6px;
+  color:#d4c4b0;text-decoration:none;display:flex;align-items:center;gap:6px;
 }
 .nav-brand .lobster{font-size:16px;filter:saturate(0.6)}
 .nav-links{display:flex;gap:20px;margin-left:auto}
 .nav-links a{
   font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
-  color:#475569;text-decoration:none;transition:color .3s;
+  color:#8a7b6b;text-decoration:none;transition:color .3s;
 }
-.nav-links a:hover,.nav-links a.active{color:#e2e8f0}
+.nav-links a:hover,.nav-links a.active{color:#f5ebe0}
 
 /* ─── Header ─── */
 .gallery-header{
@@ -54,12 +57,12 @@ body::before{
   padding:24px 16px 0;
 }
 .gallery-header h1{
-  font-size:11px;letter-spacing:8px;text-transform:uppercase;color:#475569;
+  font-size:11px;letter-spacing:8px;text-transform:uppercase;color:#8a7b6b;
   font-weight:600;margin-bottom:4px;
 }
 .gallery-header h1 .lobster{font-size:16px;margin-right:4px;filter:saturate(0.6)}
-.gallery-header .sub{font-size:10px;color:#334155;letter-spacing:3px;margin-bottom:24px}
-.gallery-header .count{font-size:12px;color:#475569;margin-bottom:20px}
+.gallery-header .sub{font-size:10px;color:#6b5e52;letter-spacing:3px;margin-bottom:24px}
+.gallery-header .count{font-size:12px;color:#8a7b6b;margin-bottom:20px}
 
 /* ─── Controls ─── */
 .controls{
@@ -68,17 +71,17 @@ body::before{
   padding:0 16px 24px;
 }
 .controls button{
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-  color:#64748b;padding:6px 16px;border-radius:20px;cursor:pointer;
+  background:rgba(255,245,230,.04);border:1px solid rgba(255,220,180,.08);
+  color:#a89984;padding:6px 16px;border-radius:20px;cursor:pointer;
   font:600 11px var(--font);letter-spacing:.5px;transition:all .3s;
 }
-.controls button:hover{background:rgba(255,255,255,.08);color:#cbd5e1;transform:translateY(-1px)}
+.controls button:hover{background:rgba(255,245,230,.08);color:#d4c4b0;transform:translateY(-1px)}
 .controls button.active{
-  background:rgba(255,255,255,.1);color:#f1f5f9;
-  border-color:rgba(255,255,255,.2);box-shadow:0 2px 12px rgba(0,0,0,.3);
+  background:rgba(255,245,230,.1);color:#f5ebe0;
+  border-color:rgba(255,220,180,.2);box-shadow:0 2px 12px rgba(0,0,0,.3);
 }
 .controls .sep{
-  width:1px;background:rgba(255,255,255,.08);margin:0 4px;align-self:stretch;
+  width:1px;background:rgba(255,220,180,.08);margin:0 4px;align-self:stretch;
 }
 
 /* ─── Card Grid ─── */
@@ -86,36 +89,171 @@ body::before{
   position:relative;z-index:1;
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:20px;padding:0 24px 48px;max-width:1200px;margin:0 auto;
+  gap:24px;padding:0 24px 48px;max-width:1200px;margin:0 auto;
 }
 
-/* ─── Mini Card ─── */
+/* ─── Keyframes ─── */
+@keyframes leviathan-border-cycle{
+  0%,100%{border-color:rgba(231,76,60,.25);box-shadow:0 0 18px rgba(231,76,60,.12),0 0 40px rgba(231,76,60,.04),inset 0 1px 0 rgba(255,245,230,.04),inset 0 -2px 4px rgba(0,0,0,.15)}
+  33%{border-color:rgba(245,158,11,.25);box-shadow:0 0 18px rgba(245,158,11,.12),0 0 40px rgba(245,158,11,.04),inset 0 1px 0 rgba(255,245,230,.04),inset 0 -2px 4px rgba(0,0,0,.15)}
+  66%{border-color:rgba(52,152,219,.25);box-shadow:0 0 18px rgba(52,152,219,.12),0 0 40px rgba(52,152,219,.04),inset 0 1px 0 rgba(255,245,230,.04),inset 0 -2px 4px rgba(0,0,0,.15)}
+}
+@keyframes leviathan-holo-pulse{
+  0%,100%{opacity:.25}
+  50%{opacity:.5}
+}
+@keyframes adult-glow-pulse{
+  0%,100%{box-shadow:0 0 12px rgba(139,92,246,.08),inset 0 1px 0 rgba(255,245,230,.04),inset 0 -2px 4px rgba(0,0,0,.15)}
+  50%{box-shadow:0 0 20px rgba(139,92,246,.15),inset 0 1px 0 rgba(255,245,230,.04),inset 0 -2px 4px rgba(0,0,0,.15)}
+}
+
+/* ─── Mini Card — Base (Slab Effect) ─── */
 .mini-card{
-  background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:14px;padding:16px;cursor:pointer;
-  transition:all .3s ease;position:relative;overflow:hidden;
-  text-decoration:none;color:inherit;display:block;
+  background:rgba(255,245,230,.03);
+  border:1px solid rgba(255,220,180,.06);
+  border-radius:12px;padding:16px;cursor:pointer;
+  transition:all .35s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
+  text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;
+  min-height:240px;
+  box-shadow:inset 0 1px 0 rgba(255,245,230,.04),inset 0 -2px 4px rgba(0,0,0,.15);
+  --mouse-x:0.5;--mouse-y:0.5;--rx:0deg;--ry:0deg;
 }
-.mini-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 8px 30px rgba(0,0,0,.4);
-  border-color:rgba(255,255,255,.12);
-}
-.mini-card.hatchling:hover{box-shadow:0 8px 30px rgba(136,216,192,.15);border-color:rgba(136,216,192,.2)}
-.mini-card.juvenile:hover{box-shadow:0 8px 30px rgba(59,130,246,.15);border-color:rgba(59,130,246,.2)}
-.mini-card.adult:hover{box-shadow:0 8px 30px rgba(139,92,246,.15);border-color:rgba(139,92,246,.2)}
-.mini-card.alpha:hover{box-shadow:0 8px 30px rgba(245,158,11,.2);border-color:rgba(245,158,11,.25)}
-.mini-card.leviathan:hover{box-shadow:0 8px 30px rgba(231,76,60,.2);border-color:rgba(231,76,60,.25)}
 
-.mini-emoji{font-size:48px;text-align:center;margin:8px 0 12px;line-height:1}
-.mini-name{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px;text-align:center;margin-bottom:2px}
-.mini-title{font-size:9px;color:#64748b;font-style:italic;text-align:center;margin-bottom:10px}
-.mini-stats{display:flex;justify-content:center;gap:6px;margin-bottom:10px}
+/* Glass reflection line (::before) — all cards */
+.mini-card::before{
+  content:'';position:absolute;inset:0;border-radius:12px;
+  background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 50%);
+  pointer-events:none;z-index:3;
+}
+.mini-card.alpha::before{
+  background:linear-gradient(135deg,rgba(255,200,50,.06) 0%,transparent 40%,rgba(255,165,0,.03) 100%);
+}
+.mini-card.leviathan::before{
+  background:linear-gradient(135deg,rgba(231,76,60,.04) 0%,rgba(155,89,182,.03) 50%,transparent 100%);
+}
+
+/* ─── Hover States ─── */
+@media(hover:hover){
+  .mini-card{
+    transform:perspective(800px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(0);
+  }
+  .mini-card:hover{
+    transform:perspective(800px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(-6px);
+    border-color:rgba(255,220,180,.12);
+  }
+}
+@media not all and (hover:hover){
+  .mini-card:active{transform:translateY(-2px)}
+}
+
+/* Rarity hover shadows */
+.mini-card.hatchling:hover{box-shadow:0 8px 30px rgba(136,216,192,.12),inset 0 1px 0 rgba(255,245,230,.04);border-color:rgba(136,216,192,.2)}
+.mini-card.juvenile:hover{box-shadow:0 8px 30px rgba(59,130,246,.12),0 0 15px rgba(59,130,246,.06),inset 0 1px 0 rgba(255,245,230,.04);border-color:rgba(59,130,246,.2)}
+.mini-card.adult:hover{box-shadow:0 8px 30px rgba(139,92,246,.15),0 0 20px rgba(139,92,246,.08),inset 0 1px 0 rgba(255,245,230,.04);border-color:rgba(139,92,246,.2)}
+.mini-card.alpha:hover{box-shadow:0 8px 35px rgba(245,158,11,.2),0 0 25px rgba(245,158,11,.1),0 0 60px rgba(245,158,11,.04),inset 0 1px 0 rgba(255,245,230,.04);border-color:rgba(245,158,11,.25)}
+.mini-card.leviathan:hover{box-shadow:0 8px 40px rgba(231,76,60,.2),0 0 30px rgba(255,200,50,.08),0 0 70px rgba(231,76,60,.06),inset 0 1px 0 rgba(255,245,230,.04);border-color:rgba(231,76,60,.3)}
+
+/* ─── Leviathan: always-on animations ─── */
+.mini-card.leviathan{
+  animation:leviathan-border-cycle 6s linear infinite;
+}
+
+/* ─── Adult: subtle pulsing glow ─── */
+.mini-card.adult{
+  animation:adult-glow-pulse 3s ease-in-out infinite;
+}
+
+/* ─── Holographic Overlay (::after) ─── */
+/* Juvenile — barely-there shimmer on hover */
+@media(hover:hover){
+  .mini-card.juvenile::after{
+    content:'';position:absolute;inset:0;border-radius:12px;
+    pointer-events:none;z-index:5;opacity:0;transition:opacity .4s;
+    mix-blend-mode:overlay;
+    background:conic-gradient(
+      from calc(var(--mouse-x) * 360deg) at calc(var(--mouse-x) * 100%) calc(var(--mouse-y) * 100%),
+      rgba(180,210,255,.04),rgba(140,180,255,.06),rgba(180,210,255,.04),transparent,rgba(180,210,255,.04)
+    );
+  }
+  .mini-card.juvenile:hover::after{opacity:.5}
+
+  /* Adult — rainbow shimmer on hover */
+  .mini-card.adult::after{
+    content:'';position:absolute;inset:0;border-radius:12px;
+    pointer-events:none;z-index:5;opacity:0;transition:opacity .4s;
+    mix-blend-mode:overlay;
+    background:conic-gradient(
+      from calc(var(--mouse-x) * 360deg) at calc(var(--mouse-x) * 100%) calc(var(--mouse-y) * 100%),
+      rgba(255,50,50,.07),rgba(255,165,0,.07),rgba(255,255,0,.07),
+      rgba(50,255,50,.07),rgba(50,150,255,.07),rgba(150,50,255,.07),rgba(255,50,50,.07)
+    );
+  }
+  .mini-card.adult:hover::after{opacity:.65}
+
+  /* Alpha — strong golden holo with light leak */
+  .mini-card.alpha::after{
+    content:'';position:absolute;inset:0;border-radius:12px;
+    pointer-events:none;z-index:5;opacity:0;transition:opacity .4s;
+    mix-blend-mode:color-dodge;
+    background:conic-gradient(
+      from calc(var(--mouse-x) * 360deg) at calc(var(--mouse-x) * 100%) calc(var(--mouse-y) * 100%),
+      rgba(255,200,50,.12),rgba(255,165,0,.08),rgba(255,220,100,.12),
+      rgba(255,180,0,.08),rgba(255,200,50,.12)
+    );
+  }
+  .mini-card.alpha:hover::after{opacity:.8}
+
+  /* Leviathan — full prismatic, animated even without hover */
+  .mini-card.leviathan::after{
+    content:'';position:absolute;inset:0;border-radius:12px;
+    pointer-events:none;z-index:5;
+    mix-blend-mode:color-dodge;
+    background:conic-gradient(
+      from calc(var(--mouse-x) * 360deg) at calc(var(--mouse-x) * 100%) calc(var(--mouse-y) * 100%),
+      rgba(255,50,50,.12),rgba(255,165,0,.12),rgba(255,255,0,.12),
+      rgba(50,255,50,.12),rgba(50,150,255,.12),rgba(150,50,255,.12),
+      rgba(255,50,150,.12),rgba(255,50,50,.12)
+    );
+    opacity:.25;
+    animation:leviathan-holo-pulse 3s ease-in-out infinite;
+    transition:opacity .4s;
+  }
+  .mini-card.leviathan:hover::after{opacity:.7;animation:none}
+}
+
+/* Non-hover devices: leviathan still gets a subtle shimmer */
+@media not all and (hover:hover){
+  .mini-card.leviathan::after{
+    content:'';position:absolute;inset:0;border-radius:12px;
+    pointer-events:none;z-index:5;
+    mix-blend-mode:color-dodge;
+    background:conic-gradient(
+      from 180deg at 50% 50%,
+      rgba(255,50,50,.1),rgba(255,165,0,.1),rgba(255,255,0,.1),
+      rgba(50,255,50,.1),rgba(50,150,255,.1),rgba(150,50,255,.1),
+      rgba(255,50,150,.1),rgba(255,50,50,.1)
+    );
+    opacity:.2;
+    animation:leviathan-holo-pulse 3s ease-in-out infinite;
+  }
+}
+
+/* ─── Card Content ─── */
+.mini-emoji{font-size:48px;text-align:center;margin:8px 0 12px;line-height:1;position:relative;z-index:2}
+.mini-name{
+  font-family:'Cinzel',serif;font-size:14px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1.5px;text-align:center;
+  margin-bottom:2px;position:relative;z-index:2;
+}
+.mini-title{font-size:9px;color:#a89984;font-style:italic;text-align:center;margin-bottom:10px;position:relative;z-index:2}
+.mini-stats{display:flex;justify-content:center;gap:6px;margin-bottom:10px;position:relative;z-index:2}
 .mini-stat{display:flex;align-items:center;gap:2px;font-size:9px;font-weight:700}
 .mini-bottom{
   display:flex;justify-content:space-between;align-items:center;
-  padding-top:8px;border-top:1px solid rgba(255,255,255,.06);
+  padding-top:8px;border-top:1px solid rgba(255,220,180,.06);
+  margin-top:auto;position:relative;z-index:2;
 }
 .mini-cp{font-size:18px;font-weight:900;letter-spacing:-0.5px}
 .cp-label{font-size:7px;font-weight:700;opacity:.4;letter-spacing:1px;margin-right:2px}
@@ -136,19 +274,20 @@ body::before{
 .alpha .mini-name{color:#fcd34d} .alpha .mini-cp{color:#fbbf24}
 .leviathan .mini-name{color:#fca5a5} .leviathan .mini-cp{color:#fbbf24}
 
-.mini-verified{position:absolute;top:10px;right:10px;font-size:10px;opacity:.6}
+.mini-verified{position:absolute;top:10px;right:10px;font-size:10px;opacity:.6;z-index:4}
 
 /* ─── Empty state ─── */
 .empty-state{
   grid-column:1/-1;text-align:center;padding:60px 20px;
-  color:#334155;
+  color:#6b5e52;
 }
 .empty-state .emoji{font-size:64px;margin-bottom:16px}
 .empty-state p{font-size:14px}
 
 /* ─── Responsive ─── */
 @media(max-width:500px){
-  .card-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:0 12px 32px}
+  .card-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;padding:0 12px 32px}
+  .mini-card{min-height:200px;padding:12px}
   .mini-emoji{font-size:36px}
   .mini-name{font-size:12px}
   .mini-cp{font-size:15px}
@@ -266,6 +405,35 @@ document.getElementById('controls').addEventListener('click', e => {
 });
 
 filterAndRender();
+
+/* ═══ Holographic Mouse Tracking (desktop only, event delegation) ═══ */
+if (window.matchMedia('(hover: hover)').matches) {
+  const grid = document.getElementById('grid');
+
+  grid.addEventListener('mousemove', function(e) {
+    const card = e.target.closest('.mini-card');
+    if (!card || card.classList.contains('hatchling')) return;
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    card.style.setProperty('--mouse-x', x.toFixed(3));
+    card.style.setProperty('--mouse-y', y.toFixed(3));
+    const rx = ((y - 0.5) * -10).toFixed(2);
+    const ry = ((x - 0.5) * 10).toFixed(2);
+    card.style.setProperty('--rx', rx + 'deg');
+    card.style.setProperty('--ry', ry + 'deg');
+  });
+
+  grid.addEventListener('mouseout', function(e) {
+    const card = e.target.closest('.mini-card');
+    if (card && !card.contains(e.relatedTarget)) {
+      card.style.setProperty('--mouse-x', '0.5');
+      card.style.setProperty('--mouse-y', '0.5');
+      card.style.setProperty('--rx', '0deg');
+      card.style.setProperty('--ry', '0deg');
+    }
+  });
+}
 </script>
 </body>
 </html>
