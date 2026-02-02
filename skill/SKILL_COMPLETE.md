@@ -1,4 +1,4 @@
-# Claw Cards Clawdbot Skill - Complete ✅
+# ClawV Clawdbot Skill - Complete ✅
 
 ## Location
 `~/clawd-cards/skill/claw-cards/`
@@ -21,7 +21,7 @@ The `claw-cards` skill enables Clawdbot agents to:
 3. **Generate** 5 battle stats (CLAW, SHELL, SURGE, CORTEX, AURA)
 4. **Determine** card type from personality (SAGE/WARRIOR/SCOUT/GUARDIAN/ORACLE)
 5. **Sign** payload with SHA-256 for integrity
-6. **Publish** to Claw Cards API
+6. **Publish** to ClawV API
 
 ## Key Features
 

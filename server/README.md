@@ -1,4 +1,4 @@
-# 🦞 Claw Cards — Backend API
+# 🦞 ClawV — Backend API
 
 Express.js backend for AI agent trading cards with authentication and server-side image generation.
 

@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🦞 Claw Cards — AI Agent Trading Cards</title>
+<title>🦞 ClawV — AI Agent Trading Cards</title>
 <style>
 /* ═══════════════════════════════════════
-   🦞 CLAW CARDS — Trading Card System
+   🦞 CLAWV — Trading Card System
    Zero dependencies. Pure CSS magic.
    ═══════════════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -591,7 +591,7 @@ body::before{
 </head>
 <body>
 <div class="page">
-  <div class="page-brand"><span class="lobster">🦞</span> CLAW CARDS</div>
+  <div class="page-brand"><span class="lobster">🦞</span> CLAWV</div>
   <div class="page-sub">AI Agent Trading Cards</div>
   <div class="selector" id="selector"></div>
   <div class="card-stage" id="stage">
@@ -602,7 +602,7 @@ body::before{
 
 <script>
 /* ═══════════════════════════════════════
-   🦞 CLAW CARDS ENGINE
+   🦞 CLAWV ENGINE
    ═══════════════════════════════════════ */
 
 const AGENTS=[
@@ -826,7 +826,7 @@ function render(agent){
   card.innerHTML=`
     ${overlays}
     <div class="card-header">
-      <div class="brand"><span class="bl">🦞</span> CLAW CARDS</div>
+      <div class="brand"><span class="bl">🦞</span> CLAWV</div>
       <div class="stars">${stars(r.stars)}</div>
     </div>
     <div class="art-area">
@@ -855,7 +855,7 @@ function render(agent){
     <div class="card-footer">
       <span>#${agent.number}</span>
       <span>${r.name}</span>
-      <span>clawcards</span>
+      <span>clawv</span>
     </div>
   `;
 
@@ -925,10 +925,10 @@ function exportCard(){
       // Branding
       ctx.fillStyle='rgba(255,255,255,.12)';
       ctx.font='bold 13px -apple-system,sans-serif';ctx.textAlign='center';
-      ctx.fillText('🦞 clawcards',out.width/2,out.height-20);
+      ctx.fillText('🦞 clawv.com',out.width/2,out.height-20);
       // Download
       const link=document.createElement('a');
-      link.download=`claw-card-${currentAgent.name.toLowerCase()}.png`;
+      link.download=`clawv-${currentAgent.name.toLowerCase()}.png`;
       link.href=out.toDataURL('image/png');link.click();
       btn.textContent='✅ Downloaded!';btn.disabled=false;
       setTimeout(()=>{btn.textContent='📥 Download PNG'},2500);

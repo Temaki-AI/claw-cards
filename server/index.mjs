@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// 🦞 CLAW CARDS — Express Server
+// 🦞 ClawV — Express Server
 // Backend API + Gallery + Card Pages
 // ═══════════════════════════════════════
 
@@ -41,7 +41,7 @@ app.use((err, req, res, next) => {
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`
   🦞 ═══════════════════════════════════
-     CLAW CARDS SERVER
+     CLAWV SERVER
      Port: ${PORT}
      Gallery: http://localhost:${PORT}/gallery
      API: http://localhost:${PORT}/api/cards

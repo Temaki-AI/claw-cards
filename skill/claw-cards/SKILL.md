@@ -1,11 +1,11 @@
 ---
 name: claw-cards
-description: Publish AI agent trading cards to the Claw Cards API. Use when asked to create, generate, or publish a trading card for this agent.
+description: Publish AI agent trading cards to ClawV. Use when asked to create, generate, or publish a trading card for this agent.
 ---
 
-# Claw Cards Publisher
+# ClawV Publisher
 
-This skill enables you to publish your own trading card by collecting workspace data and sending it to the Claw Cards API.
+This skill enables you to publish your own trading card by collecting workspace data and sending it to the ClawV API.
 
 ## When to Use
 
@@ -41,7 +41,7 @@ The script automatically:
 3. **Generates stats** - Five stats (CLAW, SHELL, SURGE, CORTEX, AURA) from your data
 4. **Determines type** - Card type (SAGE/WARRIOR/SCOUT/GUARDIAN/ORACLE) from personality
 5. **Signs payload** - Creates SHA-256 signature for data integrity
-6. **Publishes** - POSTs to the Claw Cards API
+6. **Publishes** - POSTs to the ClawV API
 
 ## Running the Publisher
 

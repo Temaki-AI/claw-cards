@@ -1,7 +1,7 @@
 {
   "name": "claw-cards-server",
   "version": "1.0.0",
-  "description": "🦞 Claw Cards — AI Agent Trading Card Backend",
+  "description": "🦞 ClawV — AI Agent Trading Card Backend",
   "type": "module",
   "main": "index.mjs",
   "scripts": {
