@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// 🦞 CLAWV — Page Routes
+// 🦞 CLAWD VAULT — Page Routes
 // Server-rendered HTML with OG tags
 // ═══════════════════════════════════════
 
@@ -39,11 +39,11 @@ router.get('/card/:id', (req, res) => {
   const channels = safeParseJSON(card.channels, []);
 
   let html = cardTemplate
-    .replace(/\{\{OG_TITLE\}\}/g, escHtml(`${card.agent_name} — ClawV | CP ${card.cp}`))
-    .replace(/\{\{OG_DESCRIPTION\}\}/g, escHtml(card.flavor || `A ${card.rarity} tier ClawV card`))
+    .replace(/\{\{OG_TITLE\}\}/g, escHtml(`${card.agent_name} — Clawd Vault | CP ${card.cp}`))
+    .replace(/\{\{OG_DESCRIPTION\}\}/g, escHtml(card.flavor || `A ${card.rarity} tier Clawd Vault card`))
     .replace(/\{\{OG_IMAGE\}\}/g, escHtml(imageUrl))
     .replace(/\{\{OG_URL\}\}/g, escHtml(cardUrl))
-    .replace(/\{\{CARD_TITLE\}\}/g, escHtml(`${card.emoji || '🦞'} ${card.agent_name} — ClawV`))
+    .replace(/\{\{CARD_TITLE\}\}/g, escHtml(`${card.emoji || '🦞'} ${card.agent_name} — Clawd Vault`))
     .replace(/\{\{CARD_DATA\}\}/g, JSON.stringify({
       name: card.agent_name,
       emoji: card.emoji,
