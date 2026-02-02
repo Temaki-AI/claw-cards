@@ -9,7 +9,6 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 import apiRoutes from './routes/api.mjs';
-import authRoutes from './routes/auth.mjs';
 import pageRoutes from './routes/pages.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,7 +28,6 @@ app.use('/images', express.static(join(__dirname, 'data', 'images'), {
 }));
 
 // ─── Routes ───
-app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/', pageRoutes);
 
