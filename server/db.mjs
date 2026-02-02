@@ -9,10 +9,13 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DB_PATH = join(__dirname, 'data', 'cards.db');
+const DATA_DIR = process.env.DATA_DIR || join(__dirname, 'data');
+const DB_PATH = join(DATA_DIR, 'cards.db');
 
-// Ensure data dir exists
-mkdirSync(join(__dirname, 'data', 'images'), { recursive: true });
+// Ensure data dirs exist (supports Railway volume mounts)
+mkdirSync(join(DATA_DIR, 'images'), { recursive: true });
+
+export { DATA_DIR };
 
 // Initialize sql.js
 const SQL = await initSqlJs();

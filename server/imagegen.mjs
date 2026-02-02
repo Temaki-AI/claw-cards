@@ -10,7 +10,8 @@ import { generatePrompt } from './prompt.mjs';
 import { markCardImage } from './db.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const IMAGES_DIR = join(__dirname, 'data', 'images');
+const DATA_DIR = process.env.DATA_DIR || join(__dirname, 'data');
+const IMAGES_DIR = join(DATA_DIR, 'images');
 
 /**
  * Generate an image for a card using Fireworks AI

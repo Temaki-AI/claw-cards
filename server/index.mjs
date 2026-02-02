@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url';
 
 import apiRoutes from './routes/api.mjs';
 import pageRoutes from './routes/pages.mjs';
+import { DATA_DIR } from './db.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3333;
@@ -54,7 +55,7 @@ app.use(express.json({ limit: '1mb' }));
 
 // ─── Static Files ───
 // Serve card images
-app.use('/images', express.static(join(__dirname, 'data', 'images'), {
+app.use('/images', express.static(join(DATA_DIR, 'images'), {
   maxAge: '1h',
   immutable: false,
 }));
