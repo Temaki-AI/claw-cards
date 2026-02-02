@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════
 
 import initSqlJs from 'sql.js';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -258,6 +258,21 @@ export function listAllCards({ sort = 'cp', limit = 50, offset = 0, rarity = nul
   }
 
   return { cards: rows, total, limit: lim, offset: off };
+}
+
+export function deleteCard(id) {
+  const card = queryOne('SELECT * FROM cards WHERE id = ?', [id]);
+  if (!card) return null;
+
+  // Remove image files
+  const pngPath = join(DATA_DIR, 'images', `${id}.png`);
+  const jpgPath = join(DATA_DIR, 'images', `${id}.jpg`);
+  try { if (existsSync(pngPath)) unlinkSync(pngPath); } catch {}
+  try { if (existsSync(jpgPath)) unlinkSync(jpgPath); } catch {}
+
+  db.run('DELETE FROM cards WHERE id = ?', [id]);
+  save();
+  return card;
 }
 
 export default db;

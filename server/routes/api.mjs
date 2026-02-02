@@ -4,13 +4,12 @@
 
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import multer from 'multer';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
-import { randomBytes, pbkdf2 } from 'crypto';
+import { randomBytes, pbkdf2, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
-import { upsertCard, getCardById, markCardImage, listAllCards, createUser, getUserByEmail, createApiKey } from '../db.mjs';
+import { upsertCard, getCardById, markCardImage, listAllCards, createUser, getUserByEmail, createApiKey, deleteCard } from '../db.mjs';
 import { generatePrompt } from '../prompt.mjs';
 import { requireApiKey, optionalApiKey } from '../middleware/auth.mjs';
 import { generateCardImageAsync } from '../imagegen.mjs';
@@ -50,27 +49,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = process.env.DATA_DIR || join(__dirname, '..', 'data');
 const IMAGES_DIR = join(DATA_DIR, 'images');
 
-// Multer config for image uploads
-const storage = multer.diskStorage({
-  destination: IMAGES_DIR,
-  filename: (req, file, cb) => {
-    const ext = file.mimetype === 'image/png' ? '.png' : '.jpg';
-    cb(null, `${req.params.id}${ext}`);
-  },
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  fileFilter: (req, file, cb) => {
-    if (['image/png', 'image/jpeg', 'image/jpg'].includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PNG and JPG images allowed'), false);
-    }
-  },
-});
-
 const router = Router();
 
 // ─── Password Hashing ───
@@ -83,7 +61,10 @@ async function hashPassword(password) {
 async function verifyPassword(password, storedHash) {
   const [salt, hash] = storedHash.split(':');
   const verifyHash = await pbkdf2Async(password, salt, 100000, 64, 'sha512');
-  return hash === verifyHash.toString('hex');
+  const hashBuf = Buffer.from(hash, 'hex');
+  const verifyBuf = Buffer.from(verifyHash.toString('hex'), 'hex');
+  if (hashBuf.length !== verifyBuf.length) return false;
+  return timingSafeEqual(hashBuf, verifyBuf);
 }
 
 // ─── POST /api/register ───
@@ -101,7 +82,7 @@ router.post('/register', registrationLimiter, async (req, res) => {
     res.status(201).json({ user_id: user.id, email: user.email, created_at: user.created_at });
   } catch (err) {
     console.error('Registration error:', err);
-    res.status(500).json({ error: 'Failed to register', details: err.message });
+    res.status(500).json({ error: 'Failed to register' });
   }
 });
 
@@ -120,7 +101,7 @@ router.post('/keys', apiKeyLimiter, async (req, res) => {
     res.status(201).json({ api_key: key.key, bot_name: key.bot_name, user_id: key.user_id, created_at: key.created_at, note: 'Store this key securely.' });
   } catch (err) {
     console.error('API key error:', err);
-    res.status(500).json({ error: 'Failed to create API key', details: err.message });
+    res.status(500).json({ error: 'Failed to create API key' });
   }
 });
 
@@ -158,42 +139,13 @@ router.post('/publish', optionalApiKey, publishLimiter, (req, res) => {
       id: card.id,
       card_url: `${baseUrl}/card/${card.id}`,
       image_prompt: imagePrompt,
-      upload_url: `/api/card/${card.id}/image`,
       status_url: `${baseUrl}/api/card/${card.id}/status`,
       message: 'Card published! Image generation started in background.',
     });
   } catch (err) {
     console.error('Publish error:', err);
-    res.status(500).json({ error: 'Failed to publish card', details: err.message });
+    res.status(500).json({ error: 'Failed to publish card' });
   }
-});
-
-// ─── POST /api/card/:id/image ───
-router.post('/card/:id/image', (req, res) => {
-  const card = getCardById(req.params.id);
-  if (!card) {
-    return res.status(404).json({ error: 'Card not found' });
-  }
-
-  upload.single('image')(req, res, (err) => {
-    if (err) {
-      if (err instanceof multer.MulterError) {
-        return res.status(400).json({ error: err.message });
-      }
-      return res.status(400).json({ error: err.message });
-    }
-    if (!req.file) {
-      return res.status(400).json({ error: 'No image file provided' });
-    }
-
-    markCardImage(req.params.id);
-
-    const ext = req.file.mimetype === 'image/png' ? '.png' : '.jpg';
-    res.json({
-      ok: true,
-      image_url: `/images/${req.params.id}${ext}`,
-    });
-  });
 });
 
 // ─── GET /api/cards ───
@@ -244,6 +196,39 @@ router.get('/card/:id/status', (req, res) => {
     image_url: card.has_image ? getImageUrl(card.id) : null,
     status: card.has_image ? 'ready' : 'generating',
   });
+});
+
+// ─── Admin Middleware ───
+function requireAdmin(req, res, next) {
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret) return res.status(503).json({ error: 'Admin endpoint not configured' });
+  const auth = req.headers.authorization || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  if (!token || token !== secret) return res.status(401).json({ error: 'Unauthorized' });
+  next();
+}
+
+// ─── GET /api/admin/cards — List all cards (moderation) ───
+router.get('/admin/cards', requireAdmin, (req, res) => {
+  try {
+    const result = listAllCards({ sort: 'newest', limit: 200, offset: 0 });
+    res.json(result);
+  } catch (err) {
+    console.error('Admin list error:', err);
+    res.status(500).json({ error: 'Failed to list cards' });
+  }
+});
+
+// ─── DELETE /api/admin/card/:id — Delete a card ───
+router.delete('/admin/card/:id', requireAdmin, (req, res) => {
+  try {
+    const deleted = deleteCard(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Card not found' });
+    res.json({ ok: true, deleted: deleted.id });
+  } catch (err) {
+    console.error('Admin delete error:', err);
+    res.status(500).json({ error: 'Failed to delete card' });
+  }
 });
 
 // ─── Helpers ───

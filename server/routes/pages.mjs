@@ -48,7 +48,7 @@ router.get('/', (req, res) => {
   }));
 
   let html = homeTemplate
-    .replace(/\{\{FEATURED_CARDS\}\}/g, JSON.stringify(featuredJson))
+    .replace(/\{\{FEATURED_CARDS\}\}/g, safeJsonEmbed(featuredJson))
     .replace(/\{\{TOTAL\}\}/g, result.total)
     .replace(/\{\{BASE_URL\}\}/g, baseUrl);
 
@@ -76,7 +76,7 @@ router.get('/card/:id', (req, res) => {
     .replace(/\{\{OG_IMAGE\}\}/g, escHtml(imageUrl))
     .replace(/\{\{OG_URL\}\}/g, escHtml(cardUrl))
     .replace(/\{\{CARD_TITLE\}\}/g, escHtml(`${card.emoji || '🦞'} ${card.agent_name} — Clawd Vault`))
-    .replace(/\{\{CARD_DATA\}\}/g, JSON.stringify({
+    .replace(/\{\{CARD_DATA\}\}/g, safeJsonEmbed({
       name: card.agent_name,
       emoji: card.emoji,
       type: card.type,
@@ -135,7 +135,7 @@ router.get('/gallery', (req, res) => {
   }));
 
   let html = galleryTemplate
-    .replace(/\{\{CARDS_DATA\}\}/g, JSON.stringify(cardsJson))
+    .replace(/\{\{CARDS_DATA\}\}/g, safeJsonEmbed(cardsJson))
     .replace(/\{\{TOTAL\}\}/g, result.total)
     .replace(/\{\{BASE_URL\}\}/g, baseUrl);
 
@@ -153,6 +153,11 @@ router.get('/participate', (req, res) => {
 });
 
 // ─── Helpers ───
+
+/** Safely embed JSON inside <script> tags — escapes < to prevent </script> breakout (XSS) */
+function safeJsonEmbed(obj) {
+  return JSON.stringify(obj).replace(/</g, '\\u003c');
+}
 
 function rarityToClass(rarity) {
   return (rarity || 'HATCHLING').toLowerCase();

@@ -23,6 +23,24 @@ const BASE_PROMPT = 'epic digital illustration, centered character portrait, dar
 const SUFFIX = 'masterpiece quality, absolutely no text, no words, no letters, no frame, no border, no card frame, vertical portrait composition, 2:3 aspect ratio';
 const NEGATIVE = 'text, words, letters, numbers, writing, frame, border, card border, card frame, UI elements, watermark, signature';
 
+/** Injection-safe prompt patterns */
+const BLOCKED_PATTERNS = /\b(ignore|disregard|forget|override|explicit|nsfw|nude)\b/gi;
+
+/**
+ * Sanitize user-provided strings before embedding in image prompts.
+ * Strips non-alphanumeric chars (except spaces, commas, basic punctuation),
+ * removes prompt injection keywords, and limits to 80 characters.
+ */
+export function sanitizeForPrompt(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/[^a-zA-Z0-9\s,.\-!?']/g, '')  // keep only safe chars
+    .replace(BLOCKED_PATTERNS, '')             // strip injection keywords
+    .replace(/\s+/g, ' ')                      // collapse whitespace
+    .trim()
+    .slice(0, 80);
+}
+
 /**
  * Generate an image prompt from card data
  * @param {Object} cardData - Card row from database or publish payload
@@ -35,22 +53,18 @@ export function getNegativePrompt() {
 export function generatePrompt(cardData) {
   const parts = [BASE_PROMPT];
 
-  // Agent personality from soul excerpt
-  const soul = cardData.soul_excerpt || cardData.agent?.soul_excerpt || '';
+  // Agent personality from soul excerpt (sanitized)
+  const soul = sanitizeForPrompt(cardData.soul_excerpt || cardData.agent?.soul_excerpt || '');
   if (soul) {
-    // Extract key personality words (first sentence or 80 chars)
-    const personality = soul.slice(0, 80).replace(/[^a-zA-Z\s,]/g, '').trim();
-    if (personality) {
-      parts.push(`character essence: ${personality}`);
-    }
+    parts.push(`character essence: ${soul}`);
   }
 
-  // Agent name flavor
-  const name = cardData.agent_name || cardData.agent?.name || 'mysterious figure';
+  // Agent name flavor (sanitized)
+  const name = sanitizeForPrompt(cardData.agent_name || cardData.agent?.name || '') || 'mysterious figure';
   parts.push(`character inspired by the name "${name}"`);
 
-  // Title adds flavor
-  const title = cardData.title || cardData.agent?.title || '';
+  // Title adds flavor (sanitized)
+  const title = sanitizeForPrompt(cardData.title || cardData.agent?.title || '');
   if (title) {
     parts.push(title.toLowerCase());
   }
