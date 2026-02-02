@@ -18,6 +18,7 @@
 <meta name="twitter:image" content="{{OG_IMAGE}}">
 <meta name="theme-color" content="#1a1614">
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
 
@@ -321,6 +322,8 @@ body::before{
   color:#6ee7b7!important;
 }
 .tweet-btn:hover{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#93c5fd}
+.download-btn:hover{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3);color:#fcd34d}
+.download-btn.downloading{opacity:.6;pointer-events:none}
 
 /* Responsive */
 @media(max-width:440px){
@@ -354,6 +357,10 @@ body::before{
       <span class="share-icon">𝕏</span>
       <span class="share-label">Post</span>
     </a>
+    <button class="share-btn download-btn" id="downloadCard" title="Download card image">
+      <span class="share-icon">⬇</span>
+      <span class="share-label" id="dlLabel">Download</span>
+    </button>
     <button class="share-btn native-btn" id="nativeShare" title="Share" style="display:none">
       <span class="share-icon">↗</span>
       <span class="share-label">Share</span>
@@ -514,6 +521,43 @@ document.getElementById('copyLink').addEventListener('click', () => {
 // Tweet button
 const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(cardUrl)}`;
 document.getElementById('tweetLink').href = tweetUrl;
+
+// Download card as image
+document.getElementById('downloadCard').addEventListener('click', async () => {
+  const btn = document.getElementById('downloadCard');
+  const label = document.getElementById('dlLabel');
+  btn.classList.add('downloading');
+  label.textContent = 'Rendering...';
+
+  try {
+    // Reset any 3D transform so the capture is flat
+    const card = document.getElementById('card');
+    const prevTransform = card.style.transform;
+    card.style.transform = 'none';
+
+    const canvas = await html2canvas(card, {
+      backgroundColor: null,
+      scale: 2, // Retina quality
+      useCORS: true,
+      logging: false,
+    });
+
+    card.style.transform = prevTransform;
+
+    // Download
+    const link = document.createElement('a');
+    link.download = `${cardName.toLowerCase().replace(/\s+/g,'-')}-clawv.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+    label.textContent = 'Saved!';
+    setTimeout(() => { label.textContent = 'Download'; btn.classList.remove('downloading'); }, 2000);
+  } catch (err) {
+    console.error('Download failed:', err);
+    label.textContent = 'Failed';
+    setTimeout(() => { label.textContent = 'Download'; btn.classList.remove('downloading'); }, 2000);
+  }
+});
 
 // Native share (mobile)
 if (navigator.share) {
