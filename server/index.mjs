@@ -60,6 +60,12 @@ app.use('/images', express.static(join(DATA_DIR, 'images'), {
   immutable: false,
 }));
 
+// Serve static assets (OG image, etc.)
+app.use('/static', express.static(join(__dirname, 'static'), {
+  maxAge: '7d',
+  immutable: true,
+}));
+
 // ─── Routes ───
 app.use('/api', apiRoutes);
 app.use('/', pageRoutes);
