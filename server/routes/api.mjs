@@ -137,10 +137,11 @@ router.post('/publish', optionalApiKey, publishLimiter, (req, res) => {
 
     res.json({
       id: card.id,
+      bot_id: card.bot_id,
       card_url: `${baseUrl}/card/${card.id}`,
       image_prompt: imagePrompt,
       status_url: `${baseUrl}/api/card/${card.id}/status`,
-      message: 'Card published! Image generation started in background.',
+      message: card.bot_id ? 'Card published! Save your bot_id to update this card later.' : 'Card updated!',
     });
   } catch (err) {
     console.error('Publish error:', err);

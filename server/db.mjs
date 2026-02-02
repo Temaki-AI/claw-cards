@@ -7,6 +7,7 @@ import initSqlJs from 'sql.js';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { randomBytes } from 'crypto';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = process.env.DATA_DIR || join(__dirname, 'data');
@@ -102,6 +103,10 @@ if (!columnExists('cards', 'user_id')) {
 if (!columnExists('cards', 'api_key')) {
   db.run(`ALTER TABLE cards ADD COLUMN api_key TEXT`);
 }
+if (!columnExists('cards', 'bot_id')) {
+  db.run(`ALTER TABLE cards ADD COLUMN bot_id TEXT`);
+  db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_cards_bot_id ON cards(bot_id)`);
+}
 
 db.run(`CREATE INDEX IF NOT EXISTS idx_cards_cp ON cards(cp DESC)`);
 db.run(`CREATE INDEX IF NOT EXISTS idx_cards_rarity ON cards(rarity)`);
@@ -194,19 +199,39 @@ export function upsertCard(data, userId = null, apiKey = null) {
   const rarityVal = computeRarity(score);
 
   const slug = (agent.name || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const hash = shortHash(JSON.stringify(data));
-  const id = `${slug}-${hash}`;
   const now = meta?.published_at || new Date().toISOString();
+
+  // Bot ID: if provided, find existing card to update. Otherwise create new.
+  const botId = data.bot_id || null;
+  let id;
+  let existingCard = null;
+
+  if (botId) {
+    // Look up existing card by bot_id
+    existingCard = queryOne('SELECT * FROM cards WHERE bot_id = ?', [botId]);
+    if (existingCard) {
+      id = existingCard.id; // Keep the same card ID
+    }
+  }
+
+  if (!id) {
+    // New card — generate fresh ID and bot_id
+    const hash = shortHash(JSON.stringify(data) + Date.now());
+    id = `${slug}-${hash}`;
+  }
+
+  // Generate a new bot_id if this is a new card
+  const finalBotId = botId || randomBytes(16).toString('hex');
 
   db.run(`
     INSERT INTO cards (id, agent_name, emoji, type, title, flavor, model, soul_excerpt,
       score, cp, stats_claw, stats_shell, stats_surge, stats_cortex, stats_aura,
-      hostname, channels, version, signature, rarity, user_id, api_key, published_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      hostname, channels, version, signature, rarity, user_id, api_key, bot_id, published_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
-      emoji=excluded.emoji, type=excluded.type, title=excluded.title,
-      flavor=excluded.flavor, model=excluded.model, soul_excerpt=excluded.soul_excerpt,
-      score=excluded.score, cp=excluded.cp,
+      agent_name=excluded.agent_name, emoji=excluded.emoji, type=excluded.type,
+      title=excluded.title, flavor=excluded.flavor, model=excluded.model,
+      soul_excerpt=excluded.soul_excerpt, score=excluded.score, cp=excluded.cp,
       stats_claw=excluded.stats_claw, stats_shell=excluded.stats_shell,
       stats_surge=excluded.stats_surge, stats_cortex=excluded.stats_cortex,
       stats_aura=excluded.stats_aura, hostname=excluded.hostname,
@@ -219,7 +244,7 @@ export function upsertCard(data, userId = null, apiKey = null) {
     score, cpVal,
     stats?.claw || 0, stats?.shell || 0, stats?.surge || 0, stats?.cortex || 0, stats?.aura || 0,
     meta?.hostname || '', JSON.stringify(meta?.channels || []), meta?.version || '',
-    signature || null, rarityVal, userId, apiKey, now
+    signature || null, rarityVal, userId, apiKey, finalBotId, now
   ]);
   save();
 
