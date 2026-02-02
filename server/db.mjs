@@ -204,13 +204,17 @@ export function upsertCard(data, userId = null, apiKey = null) {
   // Bot ID: if provided, find existing card to update. Otherwise create new.
   const botId = data.bot_id || null;
   let id;
-  let existingCard = null;
+  let isNew = true;
 
   if (botId) {
-    // Look up existing card by bot_id
-    existingCard = queryOne('SELECT * FROM cards WHERE bot_id = ?', [botId]);
+    // Look up existing card by bot_id — can only UPDATE, never create new
+    const existingCard = queryOne('SELECT * FROM cards WHERE bot_id = ?', [botId]);
     if (existingCard) {
-      id = existingCard.id; // Keep the same card ID
+      id = existingCard.id;
+      isNew = false;
+    } else {
+      // bot_id provided but no card found — reject (stolen/invalid bot_id)
+      throw new Error('INVALID_BOT_ID');
     }
   }
 
@@ -220,7 +224,7 @@ export function upsertCard(data, userId = null, apiKey = null) {
     id = `${slug}-${hash}`;
   }
 
-  // Generate a new bot_id if this is a new card
+  // Generate a new bot_id only for new cards
   const finalBotId = botId || randomBytes(16).toString('hex');
 
   db.run(`
@@ -249,7 +253,7 @@ export function upsertCard(data, userId = null, apiKey = null) {
   save();
 
   const row = queryOne('SELECT * FROM cards WHERE id = ?', [id]);
-  return row;
+  return { card: row, isNew };
 }
 
 export function getCardById(id) {

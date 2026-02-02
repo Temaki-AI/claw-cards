@@ -105,6 +105,9 @@ router.post('/keys', apiKeyLimiter, async (req, res) => {
   }
 });
 
+// ─── bot_id validation ───
+const BOT_ID_REGEX = /^[0-9a-f]{32}$/;
+
 // ─── POST /api/publish ───
 // Open for now — no auth required. Agents just publish directly.
 // Auth will be added later for human dashboard access.
@@ -123,11 +126,16 @@ router.post('/publish', optionalApiKey, publishLimiter, (req, res) => {
       return res.status(400).json({ error: 'stats object is required' });
     }
 
+    // Validate bot_id format if provided
+    if (data.bot_id && !BOT_ID_REGEX.test(data.bot_id)) {
+      return res.status(400).json({ error: 'invalid bot_id format' });
+    }
+
     // No auth required for now — use API key if provided, otherwise anonymous
     const userId = req.apiKeyData?.user_id || 'anonymous';
     const apiKey = req.apiKeyData?.key || 'open';
 
-    const card = upsertCard(data, userId, apiKey);
+    const { card, isNew } = upsertCard(data, userId, apiKey);
     const imagePrompt = generatePrompt(card);
 
     const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
@@ -135,15 +143,26 @@ router.post('/publish', optionalApiKey, publishLimiter, (req, res) => {
     // Trigger image generation in background (non-blocking)
     generateCardImageAsync(card);
 
-    res.json({
+    const response = {
       id: card.id,
-      bot_id: card.bot_id,
       card_url: `${baseUrl}/card/${card.id}`,
       image_prompt: imagePrompt,
       status_url: `${baseUrl}/api/card/${card.id}/status`,
-      message: card.bot_id ? 'Card published! Save your bot_id to update this card later.' : 'Card updated!',
-    });
+    };
+
+    // Only return bot_id on first publish — treat it like a secret
+    if (isNew) {
+      response.bot_id = card.bot_id;
+      response.message = 'Card published! Save your bot_id — it is your secret key to update this card.';
+    } else {
+      response.message = 'Card updated!';
+    }
+
+    res.json(response);
   } catch (err) {
+    if (err.message === 'INVALID_BOT_ID') {
+      return res.status(403).json({ error: 'Invalid bot_id — no card found for this token' });
+    }
     console.error('Publish error:', err);
     res.status(500).json({ error: 'Failed to publish card' });
   }
@@ -155,13 +174,16 @@ router.get('/cards', (req, res) => {
     const { sort, limit, offset, rarity } = req.query;
     const result = listAllCards({ sort, limit, offset, rarity });
 
-    // Add image URLs to cards
-    result.cards = result.cards.map(card => ({
-      ...card,
-      channels: safeParseJSON(card.channels, []),
-      image_url: card.has_image ? getImageUrl(card.id) : null,
-      card_url: `/card/${card.id}`,
-    }));
+    // Add image URLs to cards, strip secrets
+    result.cards = result.cards.map(card => {
+      const { bot_id, api_key, user_id, ...safe } = card;
+      return {
+        ...safe,
+        channels: safeParseJSON(card.channels, []),
+        image_url: card.has_image ? getImageUrl(card.id) : null,
+        card_url: `/card/${card.id}`,
+      };
+    });
 
     res.json(result);
   } catch (err) {
@@ -177,8 +199,10 @@ router.get('/card/:id', (req, res) => {
     return res.status(404).json({ error: 'Card not found' });
   }
 
+  // Strip secrets from public response
+  const { bot_id, api_key, user_id, ...safe } = card;
   res.json({
-    ...card,
+    ...safe,
     channels: safeParseJSON(card.channels, []),
     image_url: card.has_image ? getImageUrl(card.id) : null,
   });
