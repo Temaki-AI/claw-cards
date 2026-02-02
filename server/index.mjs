@@ -23,7 +23,16 @@ app.set('trust proxy', 1);
 
 // ─── Security ───
 app.disable('x-powered-by');
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+    },
+  },
+}));
 
 // ─── CORS ───
 // Allow clawv.com, same-origin, and direct API calls (no origin header from bots)
