@@ -299,6 +299,29 @@ body::before{
 }
 .nav-links a:hover{background:rgba(255,245,230,.08);color:#d4c4b0;transform:translateY(-1px)}
 
+/* Share Bar */
+.share-bar{
+  display:flex;gap:10px;margin-top:28px;flex-wrap:wrap;justify-content:center;
+}
+.share-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 18px;border-radius:24px;cursor:pointer;
+  font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:.5px;
+  text-decoration:none;
+  background:rgba(255,245,230,.06);border:1px solid rgba(255,220,180,.1);
+  color:#d4c4b0;transition:all .25s;
+}
+.share-btn:hover{
+  background:rgba(255,245,230,.12);border-color:rgba(255,220,180,.2);
+  transform:translateY(-1px);color:#f5ebe0;
+}
+.share-icon{font-size:14px;line-height:1}
+.copy-btn.copied{
+  background:rgba(52,211,153,.12)!important;border-color:rgba(52,211,153,.3)!important;
+  color:#6ee7b7!important;
+}
+.tweet-btn:hover{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#93c5fd}
+
 /* Responsive */
 @media(max-width:440px){
   :root{--card-w:92vw;--card-h:calc(92vw * 1.45)}
@@ -319,6 +342,22 @@ body::before{
 
   <div class="card-stage" id="stage">
     <div class="card" id="card"></div>
+  </div>
+
+  <!-- Share Bar -->
+  <div class="share-bar">
+    <button class="share-btn copy-btn" id="copyLink" title="Copy link">
+      <span class="share-icon">🔗</span>
+      <span class="share-label" id="copyLabel">Copy Link</span>
+    </button>
+    <a class="share-btn tweet-btn" id="tweetLink" target="_blank" rel="noopener" title="Share on X">
+      <span class="share-icon">𝕏</span>
+      <span class="share-label">Post</span>
+    </a>
+    <button class="share-btn native-btn" id="nativeShare" title="Share" style="display:none">
+      <span class="share-icon">↗</span>
+      <span class="share-label">Share</span>
+    </button>
   </div>
 
   <div class="nav-links">
@@ -454,6 +493,36 @@ function render(agent) {
 }
 
 render(CARD_DATA);
+
+/* ═══ Sharing ═══ */
+const cardUrl = window.location.href;
+const cardName = CARD_DATA.name || 'Agent';
+const cardFlavor = CARD_DATA.flavor || '';
+const tweetText = `"${cardFlavor}"\n\n${cardName}'s Claw Vault card 🦞`;
+
+// Copy link
+document.getElementById('copyLink').addEventListener('click', () => {
+  navigator.clipboard.writeText(cardUrl).then(() => {
+    const btn = document.getElementById('copyLink');
+    const label = document.getElementById('copyLabel');
+    btn.classList.add('copied');
+    label.textContent = 'Copied!';
+    setTimeout(() => { btn.classList.remove('copied'); label.textContent = 'Copy Link'; }, 2000);
+  });
+});
+
+// Tweet button
+const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(cardUrl)}`;
+document.getElementById('tweetLink').href = tweetUrl;
+
+// Native share (mobile)
+if (navigator.share) {
+  const nativeBtn = document.getElementById('nativeShare');
+  nativeBtn.style.display = 'flex';
+  nativeBtn.addEventListener('click', () => {
+    navigator.share({ title: `${cardName} — Claw Vault`, text: `"${cardFlavor}" — ${cardName}'s collectible card`, url: cardUrl });
+  });
+}
 </script>
 </body>
 </html>
