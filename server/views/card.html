@@ -23,7 +23,7 @@
 
 <style>
 /* ═══════════════════════════════════════
-   🦞 CLAWD VAULT — Single Card Page
+   🦞 CLAW VAULT — Single Card Page
    Premium collector vault aesthetic
    ═══════════════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -314,7 +314,7 @@ body::before{
 </head>
 <body>
 <div class="page">
-  <a href="/gallery" class="page-brand"><span class="lobster">🦞</span> CLAWD VAULT</a>
+  <a href="/gallery" class="page-brand"><span class="lobster">🦞</span> CLAW VAULT</a>
   <div class="page-sub">Collectible AI Agent Cards</div>
 
   <div class="card-stage" id="stage">
@@ -323,7 +323,6 @@ body::before{
 
   <div class="nav-links">
     <a href="/gallery">← Gallery</a>
-    <a href="/api/card/{{CARD_ID}}" target="_blank">📄 JSON</a>
   </div>
 </div>
 
@@ -410,7 +409,7 @@ function render(agent) {
   card.innerHTML = `
     ${overlays}
     <div class="card-header">
-      <div class="brand"><span class="bl">🦞</span> CLAWD VAULT</div>
+      <div class="brand"><span class="bl">🦞</span> CLAW VAULT</div>
       <div class="stars">${stars(r.stars)}</div>
     </div>
     <div class="art-area"${agent.has_image && agent.image_url ? ` style="background-image:url('${agent.image_url}');background-size:cover;background-position:center top"` : ''}>

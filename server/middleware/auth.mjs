@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// 🦞 CLAWD VAULT — Auth Middleware
+// 🦞 CLAW VAULT — Auth Middleware
 // API key validation
 // ═══════════════════════════════════════
 
