@@ -419,12 +419,12 @@ function render(agent) {
       <div class="brand"><span class="bl">🦞</span> CLAW CARDS</div>
       <div class="stars">${stars(r.stars)}</div>
     </div>
-    <div class="art-area">
-      ${artInner}
-      <div class="emoji-wrap">
+    <div class="art-area"${agent.has_image && agent.image_url ? ` style="background-image:url('${agent.image_url}');background-size:cover;background-position:center top"` : ''}>
+      ${agent.has_image ? '' : artInner}
+      ${agent.has_image ? '' : `<div class="emoji-wrap">
         <div class="emoji-aura"></div>
         <div class="emoji-display">${agent.emoji}</div>
-      </div>
+      </div>`}
     </div>
     <div class="card-info">
       <div class="name-row">

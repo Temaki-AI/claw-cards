@@ -206,7 +206,7 @@ function renderGrid(cards) {
 
     return `<a href="/card/${card.id}" class="mini-card ${cls}">
       ${card.signature ? '<div class="mini-verified" title="Verified">✓</div>' : ''}
-      <div class="mini-emoji">${card.emoji || '🦞'}</div>
+      ${card.has_image && card.image_url ? `<div class="mini-emoji" style="background-image:url('${card.image_url}');background-size:cover;background-position:center;border-radius:8px;height:80px;font-size:0"></div>` : `<div class="mini-emoji">${card.emoji || '🦞'}</div>`}
       <div class="mini-name">${card.agent_name}</div>
       <div class="mini-title">${card.title || ''}</div>
       <div class="mini-stats">${statsHtml}</div>
