@@ -17,6 +17,10 @@ const PORT = process.env.PORT || 3333;
 
 const app = express();
 
+// ─── Trust Proxy ───
+// Required for rate limiting behind Railway/proxies to get real client IPs
+app.set('trust proxy', 1);
+
 // ─── Security ───
 app.disable('x-powered-by');
 app.use(helmet());
