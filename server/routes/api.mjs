@@ -36,9 +36,9 @@ const apiKeyLimiter = rateLimit({
 
 const publishLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // 10 publishes per API key per hour
-  keyGenerator: (req) => req.apiKeyData?.key || req.ip, // Rate limit by API key
-  message: { error: 'Too many publish requests. Try again later.' },
+  max: 3, // 3 publishes per IP per hour
+  keyGenerator: (req) => req.ip,
+  message: { error: 'Too many publish requests. Try again in an hour.' },
   standardHeaders: true,
   legacyHeaders: false,
 });

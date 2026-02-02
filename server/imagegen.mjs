@@ -13,6 +13,35 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = process.env.DATA_DIR || join(__dirname, 'data');
 const IMAGES_DIR = join(DATA_DIR, 'images');
 
+// ─── Anti-Spam: Daily image cap + per-agent cooldown ───
+const DAILY_IMAGE_CAP = parseInt(process.env.DAILY_IMAGE_CAP || '50', 10);
+const AGENT_COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6 hours between image regens per agent
+
+let dailyImageCount = 0;
+let dailyResetDate = new Date().toDateString();
+const agentLastImage = new Map(); // cardId → timestamp
+
+function checkAndIncrementDaily() {
+  const today = new Date().toDateString();
+  if (today !== dailyResetDate) {
+    dailyImageCount = 0;
+    dailyResetDate = today;
+  }
+  if (dailyImageCount >= DAILY_IMAGE_CAP) {
+    return false; // cap reached
+  }
+  dailyImageCount++;
+  return true;
+}
+
+function checkAgentCooldown(cardId) {
+  const lastGen = agentLastImage.get(cardId);
+  if (lastGen && (Date.now() - lastGen) < AGENT_COOLDOWN_MS) {
+    return false; // still in cooldown
+  }
+  return true;
+}
+
 /**
  * Generate an image for a card using Fireworks AI
  * @param {Object} card - Card data from database
@@ -68,13 +97,31 @@ export async function generateCardImage(card) {
 }
 
 /**
- * Generate image in background (fire and forget)
+ * Generate image in background with spam protection.
+ * Skips generation if: daily cap reached, or agent is in cooldown.
  * @param {Object} card - Card data from database
  */
 export function generateCardImageAsync(card) {
+  // Check agent cooldown (skip regen if same agent published recently)
+  if (!checkAgentCooldown(card.id)) {
+    console.log(`⏳ Skipping image regen for ${card.id} — cooldown (6h). Card data still updated.`);
+    return;
+  }
+
+  // Check daily cap
+  if (!checkAndIncrementDaily()) {
+    console.log(`🚫 Daily image cap reached (${DAILY_IMAGE_CAP}). Skipping image for ${card.id}.`);
+    return;
+  }
+
+  // Record this generation
+  agentLastImage.set(card.id, Date.now());
+
   // Run in background, catch errors to prevent unhandled rejections
   generateCardImage(card).catch(err => {
     console.error(`Background image generation failed for ${card.id}:`, err.message);
+    // Roll back the daily count on failure
+    dailyImageCount = Math.max(0, dailyImageCount - 1);
   });
 }
 
