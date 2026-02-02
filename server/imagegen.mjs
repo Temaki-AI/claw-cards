@@ -28,18 +28,18 @@ export async function generateCardImage(card) {
   console.log(`   Prompt: ${prompt.slice(0, 100)}...`);
 
   try {
-    const response = await fetch('https://api.fireworks.ai/inference/v1/images/generations', {
+    const response = await fetch('https://api.fireworks.ai/inference/v1/workflows/accounts/fireworks/models/flux-1-schnell-fp8/text_to_image', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
+        'Accept': 'image/png',
       },
       body: JSON.stringify({
-        model: 'accounts/fireworks/models/flux-1-schnell-fp8',
         prompt,
-        n: 1,
-        size: '1024x1536', // 2:3 aspect ratio for cards
-        response_format: 'b64_json',
+        aspect_ratio: '2:3', // Card aspect ratio
+        num_inference_steps: 4,
+        seed: 0, // Random seed
       }),
     });
 
@@ -48,15 +48,12 @@ export async function generateCardImage(card) {
       throw new Error(`Fireworks API error (${response.status}): ${errorText}`);
     }
 
-    const data = await response.json();
-    
-    if (!data.data || !data.data[0] || !data.data[0].b64_json) {
-      throw new Error('Unexpected response format from Fireworks API');
-    }
-
-    const imageBase64 = data.data[0].b64_json;
-    const imageBuffer = Buffer.from(imageBase64, 'base64');
-    const imagePath = join(IMAGES_DIR, `${card.id}.png`);
+    // Response is binary image (Fireworks returns JPEG regardless of Accept header)
+    const contentType = response.headers.get('content-type') || '';
+    const ext = contentType.includes('jpeg') || contentType.includes('jpg') ? '.jpg' : '.png';
+    const arrayBuffer = await response.arrayBuffer();
+    const imageBuffer = Buffer.from(arrayBuffer);
+    const imagePath = join(IMAGES_DIR, `${card.id}${ext}`);
 
     writeFileSync(imagePath, imageBuffer);
     markCardImage(card.id);
