@@ -12,7 +12,7 @@ import { randomBytes, pbkdf2 } from 'crypto';
 import { promisify } from 'util';
 import { upsertCard, getCardById, markCardImage, listAllCards, createUser, getUserByEmail, createApiKey } from '../db.mjs';
 import { generatePrompt } from '../prompt.mjs';
-import { requireApiKey } from '../middleware/auth.mjs';
+import { requireApiKey, optionalApiKey } from '../middleware/auth.mjs';
 import { generateCardImageAsync } from '../imagegen.mjs';
 
 const pbkdf2Async = promisify(pbkdf2);
@@ -125,7 +125,9 @@ router.post('/keys', apiKeyLimiter, async (req, res) => {
 });
 
 // ─── POST /api/publish ───
-router.post('/publish', requireApiKey, publishLimiter, (req, res) => {
+// Open for now — no auth required. Agents just publish directly.
+// Auth will be added later for human dashboard access.
+router.post('/publish', optionalApiKey, publishLimiter, (req, res) => {
   try {
     const data = req.body;
 
@@ -140,9 +142,9 @@ router.post('/publish', requireApiKey, publishLimiter, (req, res) => {
       return res.status(400).json({ error: 'stats object is required' });
     }
 
-    // Attach user and API key from auth middleware
-    const userId = req.apiKeyData.user_id;
-    const apiKey = req.apiKeyData.key;
+    // No auth required for now — use API key if provided, otherwise anonymous
+    const userId = req.apiKeyData?.user_id || 'anonymous';
+    const apiKey = req.apiKeyData?.key || 'open';
 
     const card = upsertCard(data, userId, apiKey);
     const imagePrompt = generatePrompt(card);

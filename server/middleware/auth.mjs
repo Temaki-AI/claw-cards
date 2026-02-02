@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// 🦞 CLAWV — Auth Middleware
+// 🦞 CLAWD VAULT — Auth Middleware
 // API key validation
 // ═══════════════════════════════════════
 
@@ -29,6 +29,23 @@ export function requireApiKey(req, res, next) {
   // Attach to request for use in route handlers
   req.apiKeyData = keyData;
 
+  next();
+}
+
+/**
+ * Optional auth — attaches apiKeyData if present, but doesn't block.
+ * Used for open endpoints that optionally accept auth.
+ */
+export function optionalApiKey(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const apiKey = authHeader.slice(7);
+    const keyData = getApiKey(apiKey);
+    if (keyData) {
+      updateApiKeyLastUsed(apiKey);
+      req.apiKeyData = keyData;
+    }
+  }
   next();
 }
 
