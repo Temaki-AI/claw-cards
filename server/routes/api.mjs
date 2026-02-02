@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════
 
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import multer from 'multer';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -15,6 +16,35 @@ import { requireApiKey } from '../middleware/auth.mjs';
 import { generateCardImageAsync } from '../imagegen.mjs';
 
 const pbkdf2Async = promisify(pbkdf2);
+
+// ─── Rate Limiters ───
+const registrationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 registrations per IP per hour
+  message: { error: 'Too many registration attempts. Try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const apiKeyLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 API key generations per hour
+  message: { error: 'Too many API key requests. Try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const publishLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 publishes per API key per hour
+  keyGenerator: (req) => req.apiKeyData?.key || req.ip, // Rate limit by API key
+  message: { error: 'Too many publish requests. Try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// ─── Email Validation ───
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IMAGES_DIR = join(__dirname, '..', 'data', 'images');
@@ -56,12 +86,12 @@ async function verifyPassword(password, storedHash) {
 }
 
 // ─── POST /api/register ───
-router.post('/register', async (req, res) => {
+router.post('/register', registrationLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'email and password required' });
     if (password.length < 8) return res.status(400).json({ error: 'password must be at least 8 characters' });
-    if (!email.includes('@')) return res.status(400).json({ error: 'invalid email format' });
+    if (!EMAIL_REGEX.test(email)) return res.status(400).json({ error: 'invalid email format' });
     const existing = getUserByEmail(email);
     if (existing) return res.status(409).json({ error: 'user already exists' });
     const userId = randomBytes(16).toString('hex');
@@ -75,7 +105,7 @@ router.post('/register', async (req, res) => {
 });
 
 // ─── POST /api/keys ───
-router.post('/keys', async (req, res) => {
+router.post('/keys', apiKeyLimiter, async (req, res) => {
   try {
     const { email, password, bot_name } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'email and password required' });
@@ -94,7 +124,7 @@ router.post('/keys', async (req, res) => {
 });
 
 // ─── POST /api/publish ───
-router.post('/publish', requireApiKey, (req, res) => {
+router.post('/publish', requireApiKey, publishLimiter, (req, res) => {
   try {
     const data = req.body;
 

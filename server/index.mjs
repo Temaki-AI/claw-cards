@@ -5,6 +5,7 @@
 
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -16,8 +17,26 @@ const PORT = process.env.PORT || 3333;
 
 const app = express();
 
+// ─── Security ───
+app.disable('x-powered-by');
+app.use(helmet());
+
+// ─── CORS ───
+// Allow clawv.com, same-origin, and direct API calls (no origin header from bots)
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g., curl, bots) or from allowed domains
+    if (!origin || origin === 'https://clawv.com' || origin.startsWith('http://localhost')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
 // ─── Middleware ───
-app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
 // ─── Static Files ───

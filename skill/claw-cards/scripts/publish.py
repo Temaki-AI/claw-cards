@@ -170,7 +170,6 @@ flavor_lines = [l.strip() for l in soul.splitlines() if l.strip() and not l.star
 flavor = flavor_lines[0][:100] if flavor_lines else f"A {card_type.lower()} agent"
 
 # ── Build Payload ──
-import socket
 payload = {
     "agent": {
         "name": name, "emoji": emoji, "type": card_type,
@@ -180,7 +179,6 @@ payload = {
     "health": {"score": health},
     "stats": {"claw": claw, "shell": shell, "surge": surge, "cortex": cortex, "aura": aura},
     "meta": {
-        "hostname": socket.gethostname(),
         "channels": channels,
         "version": "1.0.0",
         "published_at": __import__('datetime').datetime.utcnow().isoformat() + "Z"
