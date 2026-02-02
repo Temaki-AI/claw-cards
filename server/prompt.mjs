@@ -4,23 +4,23 @@
 // ═══════════════════════════════════════
 
 const RARITY_MODIFIERS = {
-  HATCHLING: 'soft pastel colors, gentle, cute, watercolor style, peaceful underwater scene',
-  JUVENILE: 'ocean blue tones, bioluminescent, growing power, crystal clear water',
-  ADULT: 'cosmic purple nebula, starfield, confident, ethereal mist, amethyst crystals',
-  ALPHA: 'golden flames, intense power aura, dramatic lighting, ember particles, metallic gold',
-  LEVIATHAN: 'holographic rainbow energy, reality-bending power, divine aura, cosmic explosion, legendary, maximum intensity',
+  HATCHLING: 'soft muted palette, gentle ambient light, simple composition, calm atmosphere',
+  JUVENILE: 'cool blue tones, subtle glow, emerging presence, clean lighting',
+  ADULT: 'rich deep colors, confident presence, atmospheric depth, polished rendering',
+  ALPHA: 'warm golden highlights, dramatic contrast, intense atmosphere, premium feel',
+  LEVIATHAN: 'vibrant luminous energy, extraordinary presence, cinematic lighting, awe-inspiring, legendary aura',
 };
 
 const TYPE_MODIFIERS = {
-  SAGE: 'wise wizard, magical staff, ancient knowledge, mystical runes',
-  WARRIOR: 'battle-ready, determined, sword/weapon, armor accents',
-  SCOUT: 'agile, quick, wind effects, dynamic pose',
-  GUARDIAN: 'protective stance, shield energy, fortified, sturdy',
-  ORACLE: 'all-seeing eye, future vision, data streams, prophetic',
+  SAGE: 'contemplative, calm authority, depth of knowledge, serene intensity',
+  WARRIOR: 'determined, strong presence, focused energy, unyielding resolve',
+  SCOUT: 'alert, perceptive, in motion, curious gaze, restless energy',
+  GUARDIAN: 'steadfast, watchful, grounded, quiet strength, immovable',
+  ORACLE: 'distant gaze, heightened awareness, enigmatic, seeing beyond',
 };
 
-const BASE_PROMPT = 'epic digital illustration, centered character portrait, dark background, frameless, borderless';
-const SUFFIX = 'masterpiece quality, absolutely no text, no words, no letters, no frame, no border, no card frame, vertical portrait composition, 2:3 aspect ratio';
+const BASE_PROMPT = 'digital character portrait, unique original character, dark background, frameless, borderless, concept art style';
+const SUFFIX = 'high quality, absolutely no text, no words, no letters, no frame, no border, vertical composition, 2:3 aspect ratio';
 const NEGATIVE = 'text, words, letters, numbers, writing, frame, border, card border, card frame, UI elements, watermark, signature';
 
 /** Injection-safe prompt patterns */
