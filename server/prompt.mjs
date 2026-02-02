@@ -21,7 +21,7 @@ const TYPE_MODIFIERS = {
 
 const BASE_PROMPT = 'digital character portrait, unique original character, dark background, frameless, borderless, concept art style';
 const SUFFIX = 'high quality, absolutely no text, no words, no letters, no frame, no border, vertical composition, 2:3 aspect ratio';
-const NEGATIVE = 'text, words, letters, numbers, writing, frame, border, card border, card frame, UI elements, watermark, signature';
+const NEGATIVE = 'text, words, letters, numbers, writing, frame, border, UI elements, watermark, signature';
 
 /** Injection-safe prompt patterns */
 const BLOCKED_PATTERNS = /\b(ignore|disregard|forget|override|explicit|nsfw|nude)\b/gi;
