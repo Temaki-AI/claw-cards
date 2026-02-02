@@ -82,40 +82,78 @@ try:
         if ch in out.stdout.lower(): channels.append(ch)
 except: pass
 
-# Count resources
+# ── Mechanical Data Collection (all countable, zero AI) ──
 mem_dir = workspace / "memory"
+knowledge_dir = workspace / "knowledge"
+creds_dir = workspace / ".credentials"
+skills_dir = Path.home() / ".local" / "share" / "clawdbot" / "skills"
+
+# File counts
 memory_files = len(list(mem_dir.glob("*.md"))) if mem_dir.exists() else 0
-completed_tasks = len(re.findall(r'^- \[x\]', tasks, re.MULTILINE))
-skills_dir = Path.home() / ".local/share/clawdbot/skills"
+memory_bytes = sum(f.stat().st_size for f in mem_dir.rglob("*") if f.is_file()) if mem_dir.exists() else 0
+knowledge_bytes = sum(f.stat().st_size for f in knowledge_dir.rglob("*") if f.is_file()) if knowledge_dir.exists() else 0
+credentials_count = len(list(creds_dir.glob("*.json"))) if creds_dir.exists() else 0
 skills_count = len(list(skills_dir.iterdir())) if skills_dir.exists() else 0
 
+# Text metrics
+soul_words = len(soul.split()) if soul else 0
+identity_fields = len(re.findall(r'^\- \*\*\w+', identity, re.MULTILINE))
+
+# Task metrics
+tasks_done = len(re.findall(r'^- \[x\]', tasks, re.MULTILINE))
+tasks_total = len(re.findall(r'^- \[[ x]\]', tasks, re.MULTILINE))
+
+# Git commits
+git_commits = 0
+try:
+    r = subprocess.run(["git", "log", "--oneline"], capture_output=True, text=True, timeout=5, cwd=str(workspace))
+    git_commits = len(r.stdout.strip().splitlines()) if r.returncode == 0 else 0
+except: pass
+
+# Agent age (days since earliest memory file)
+agent_age_days = 0
+if mem_dir.exists():
+    dates = re.findall(r'(\d{4}-\d{2}-\d{2})', ' '.join(f.name for f in mem_dir.glob("*.md")))
+    if dates:
+        from datetime import datetime, timezone
+        earliest = min(dates)
+        try:
+            delta = datetime.now(timezone.utc) - datetime.strptime(earliest, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            agent_age_days = max(0, delta.days)
+        except: pass
+
+# Model tier: opus=3, sonnet=2, haiku=1, other=1
+model_tier = 3 if 'opus' in model else 2 if 'sonnet' in model else 1
+
 print(f"   Agent: {name} {emoji} ({card_type})")
-print(f"   Model: {model}")
-print(f"   Memory files: {memory_files}, Tasks done: {completed_tasks}, Skills: {skills_count}")
+print(f"   Model: {model} (tier {model_tier})")
+print(f"   Memory: {memory_files} files, {memory_bytes} bytes")
+print(f"   Knowledge: {knowledge_bytes} bytes")
+print(f"   Tasks: {tasks_done}/{tasks_total} done")
+print(f"   Skills: {skills_count}, Credentials: {credentials_count}, Channels: {len(channels)}")
+print(f"   Git commits: {git_commits}, Age: {agent_age_days} days")
+print(f"   SOUL: {soul_words} words, IDENTITY fields: {identity_fields}")
 
-# ── Health Score (0-100) ──
-health = 0
-if soul: health += 20
-if identity: health += 10
-if memory: health += 15
-health += min(15, memory_files)
-if completed_tasks > 0: health += 10
-health += min(15, skills_count * 5)
-health += min(15, len(channels) * 5)
-health = min(100, health)
+# ── Mechanical Scoring (pure math, zero subjectivity) ──
 
-# ── Stats (0-100) ──
-mp = 50
-if re.search(r'opus', model): mp = 80
-elif re.search(r'sonnet', model): mp = 70
-elif re.search(r'haiku', model): mp = 40
+# CLAW (Capability): what can this bot do?
+claw = min(100, model_tier * 15 + skills_count * 8 + credentials_count * 5)
 
-claw = min(100, mp + skills_count * 3)
-shell = min(100, 40 + memory_files * 2 + (10 if memory else 0))
-surge = 90 if 'haiku' in model else 70 if 'sonnet' in model else 40 if 'opus' in model else 50
-cortex = min(100, 30 + memory_files * 2 + len(soul) // 50)
-emoji_count = len(re.findall(r'[\U0001F300-\U0001F9FF]', soul))
-aura = min(100, 40 + len(soul) // 30 + emoji_count * 5)
+# SHELL (Resilience): how organized/reliable?
+shell = min(100, memory_files * 3 + min(50, memory_bytes // 1000) + agent_age_days // 3)
+
+# SURGE (Activity): how active/productive?
+surge = min(100, tasks_done * 4 + len(channels) * 10 + git_commits // 5)
+
+# CORTEX (Intelligence): how deep is the knowledge?
+cortex = min(100, soul_words // 15 + identity_fields * 4 + knowledge_bytes // 2000)
+
+# AURA (Personality): how distinctive?
+task_ratio = (tasks_done / max(tasks_total, 1))
+aura = min(100, soul_words // 8 + int(task_ratio * 30) + credentials_count * 3)
+
+# Overall health = average of all stats
+health = (claw + shell + surge + cortex + aura) // 5
 
 print(f"💚 Health: {health}/100")
 print(f"⚔️  Stats: CLAW={claw} SHELL={shell} SURGE={surge} CORTEX={cortex} AURA={aura}")
