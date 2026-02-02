@@ -208,8 +208,15 @@ for line in identity.splitlines():
         break
 if not title: title = f"The {card_type.title()}"
 
-flavor_lines = [l.strip() for l in soul.splitlines() if l.strip() and not l.startswith('#') and not l.startswith('*') and not l.startswith('-') and not l.startswith('---')]
-flavor = flavor_lines[0][:100] if flavor_lines else f"A {card_type.lower()} agent"
+# Flavor: prefer env var (bot-generated), then file, then fallback
+flavor = os.environ.get("CLAW_CARDS_FLAVOR", "").strip()
+if not flavor:
+    flavor_file = workspace / ".claw-card-flavor.txt"
+    if flavor_file.exists():
+        flavor = flavor_file.read_text().strip()[:120]
+if not flavor:
+    flavor_lines = [l.strip() for l in soul.splitlines() if l.strip() and not l.startswith('#') and not l.startswith('*') and not l.startswith('-') and not l.startswith('---')]
+    flavor = flavor_lines[0][:100] if flavor_lines else f"A {card_type.lower()} agent"
 
 # ── Build Payload ──
 payload = {
