@@ -9,6 +9,8 @@ import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
 import { upsertCard, getCardById, markCardImage, listAllCards } from '../db.mjs';
 import { generatePrompt } from '../prompt.mjs';
+import { requireApiKey } from '../middleware/auth.mjs';
+import { generateCardImageAsync } from '../imagegen.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IMAGES_DIR = join(__dirname, '..', 'data', 'images');
@@ -37,7 +39,7 @@ const upload = multer({
 const router = Router();
 
 // ─── POST /api/publish ───
-router.post('/publish', (req, res) => {
+router.post('/publish', requireApiKey, (req, res) => {
   try {
     const data = req.body;
 
@@ -52,16 +54,25 @@ router.post('/publish', (req, res) => {
       return res.status(400).json({ error: 'stats object is required' });
     }
 
-    const card = upsertCard(data);
+    // Attach user and API key from auth middleware
+    const userId = req.apiKeyData.user_id;
+    const apiKey = req.apiKeyData.key;
+
+    const card = upsertCard(data, userId, apiKey);
     const imagePrompt = generatePrompt(card);
 
     const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+
+    // Trigger image generation in background (non-blocking)
+    generateCardImageAsync(card);
 
     res.json({
       id: card.id,
       card_url: `${baseUrl}/card/${card.id}`,
       image_prompt: imagePrompt,
       upload_url: `/api/card/${card.id}/image`,
+      status_url: `${baseUrl}/api/card/${card.id}/status`,
+      message: 'Card published! Image generation started in background.',
     });
   } catch (err) {
     console.error('Publish error:', err);
@@ -129,6 +140,21 @@ router.get('/card/:id', (req, res) => {
     ...card,
     channels: safeParseJSON(card.channels, []),
     image_url: card.has_image ? getImageUrl(card.id) : null,
+  });
+});
+
+// ─── GET /api/card/:id/status ───
+router.get('/card/:id/status', (req, res) => {
+  const card = getCardById(req.params.id);
+  if (!card) {
+    return res.status(404).json({ error: 'Card not found' });
+  }
+
+  res.json({
+    id: card.id,
+    has_image: !!card.has_image,
+    image_url: card.has_image ? getImageUrl(card.id) : null,
+    status: card.has_image ? 'ready' : 'generating',
   });
 });
 

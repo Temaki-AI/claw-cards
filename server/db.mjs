@@ -32,6 +32,38 @@ function save() {
 }
 
 // ─── Schema ───
+// Helper to check if column exists
+function columnExists(tableName, columnName) {
+  const result = db.exec(`PRAGMA table_info(${tableName})`);
+  if (!result || !result[0]) return false;
+  const columns = result[0].values.map(row => row[1]); // column name is at index 1
+  return columns.includes(columnName);
+}
+
+// Users table
+db.run(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// API Keys table
+db.run(`
+  CREATE TABLE IF NOT EXISTS api_keys (
+    key TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    bot_name TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_used_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )
+`);
+db.run(`CREATE INDEX IF NOT EXISTS idx_api_keys_user ON api_keys(user_id)`);
+
+// Cards table
 db.run(`
   CREATE TABLE IF NOT EXISTS cards (
     id TEXT PRIMARY KEY,
@@ -59,9 +91,19 @@ db.run(`
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+// Migrations - Add new columns if they don't exist
+if (!columnExists('cards', 'user_id')) {
+  db.run(`ALTER TABLE cards ADD COLUMN user_id TEXT`);
+}
+if (!columnExists('cards', 'api_key')) {
+  db.run(`ALTER TABLE cards ADD COLUMN api_key TEXT`);
+}
+
 db.run(`CREATE INDEX IF NOT EXISTS idx_cards_cp ON cards(cp DESC)`);
 db.run(`CREATE INDEX IF NOT EXISTS idx_cards_rarity ON cards(rarity)`);
 db.run(`CREATE INDEX IF NOT EXISTS idx_cards_published ON cards(published_at DESC)`);
+db.run(`CREATE INDEX IF NOT EXISTS idx_cards_user ON cards(user_id)`);
 save();
 
 // ─── Helpers ───
@@ -113,9 +155,36 @@ function shortHash(str) {
   return Math.abs(h).toString(36).slice(0, 6);
 }
 
+// ─── User & Auth Helpers ───
+
+export function createUser(id, email, passwordHash) {
+  db.run('INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)', [id, email, passwordHash]);
+  save();
+  return queryOne('SELECT id, email, created_at FROM users WHERE id = ?', [id]);
+}
+
+export function getUserByEmail(email) {
+  return queryOne('SELECT * FROM users WHERE email = ?', [email]);
+}
+
+export function createApiKey(key, userId, botName) {
+  db.run('INSERT INTO api_keys (key, user_id, bot_name) VALUES (?, ?, ?)', [key, userId, botName]);
+  save();
+  return queryOne('SELECT key, user_id, bot_name, created_at FROM api_keys WHERE key = ?', [key]);
+}
+
+export function getApiKey(key) {
+  return queryOne('SELECT * FROM api_keys WHERE key = ?', [key]);
+}
+
+export function updateApiKeyLastUsed(key) {
+  db.run('UPDATE api_keys SET last_used_at = CURRENT_TIMESTAMP WHERE key = ?', [key]);
+  save();
+}
+
 // ─── Exports ───
 
-export function upsertCard(data) {
+export function upsertCard(data, userId = null, apiKey = null) {
   const { agent, health, stats, meta, signature } = data;
   const score = health?.score || 0;
   const cpVal = computeCP(score, stats || {});
@@ -129,8 +198,8 @@ export function upsertCard(data) {
   db.run(`
     INSERT INTO cards (id, agent_name, emoji, type, title, flavor, model, soul_excerpt,
       score, cp, stats_claw, stats_shell, stats_surge, stats_cortex, stats_aura,
-      hostname, channels, version, signature, rarity, published_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      hostname, channels, version, signature, rarity, user_id, api_key, published_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       emoji=excluded.emoji, type=excluded.type, title=excluded.title,
       flavor=excluded.flavor, model=excluded.model, soul_excerpt=excluded.soul_excerpt,
@@ -147,7 +216,7 @@ export function upsertCard(data) {
     score, cpVal,
     stats?.claw || 0, stats?.shell || 0, stats?.surge || 0, stats?.cortex || 0, stats?.aura || 0,
     meta?.hostname || '', JSON.stringify(meta?.channels || []), meta?.version || '',
-    signature || null, rarityVal, now
+    signature || null, rarityVal, userId, apiKey, now
   ]);
   save();
 
