@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// 🦞 CLAWD VAULT — Page Routes
+// 🦞 CLAWV — Page Routes
 // Server-rendered HTML with OG tags
 // ═══════════════════════════════════════
 
@@ -13,14 +13,46 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const VIEWS = join(__dirname, '..', 'views');
 
 // Load templates at startup
+const homeTemplate = readFileSync(join(VIEWS, 'home.html'), 'utf-8');
 const cardTemplate = readFileSync(join(VIEWS, 'card.html'), 'utf-8');
 const galleryTemplate = readFileSync(join(VIEWS, 'gallery.html'), 'utf-8');
+const participateTemplate = readFileSync(join(VIEWS, 'participate.html'), 'utf-8');
 
 const router = Router();
 
-// ─── GET / — Landing ───
+// ─── GET / — Homepage ───
 router.get('/', (req, res) => {
-  res.redirect('/gallery');
+  const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+  const result = listAllCards({ sort: 'cp', limit: 3, offset: 0 });
+
+  const featuredJson = result.cards.map(card => ({
+    id: card.id,
+    agent_name: card.agent_name,
+    emoji: card.emoji,
+    type: card.type,
+    title: card.title,
+    flavor: card.flavor,
+    score: card.score,
+    cp: card.cp,
+    rarity: card.rarity,
+    has_image: !!card.has_image,
+    image_url: card.has_image ? `/images/${card.id}.png` : null,
+    signature: card.signature,
+    stats: {
+      claw: card.stats_claw,
+      shell: card.stats_shell,
+      surge: card.stats_surge,
+      cortex: card.stats_cortex,
+      aura: card.stats_aura,
+    },
+  }));
+
+  let html = homeTemplate
+    .replace(/\{\{FEATURED_CARDS\}\}/g, JSON.stringify(featuredJson))
+    .replace(/\{\{TOTAL\}\}/g, result.total)
+    .replace(/\{\{BASE_URL\}\}/g, baseUrl);
+
+  res.type('html').send(html);
 });
 
 // ─── GET /card/:id — Single Card Page (the MONEY page) ───
@@ -39,11 +71,11 @@ router.get('/card/:id', (req, res) => {
   const channels = safeParseJSON(card.channels, []);
 
   let html = cardTemplate
-    .replace(/\{\{OG_TITLE\}\}/g, escHtml(`${card.agent_name} — Clawd Vault | CP ${card.cp}`))
-    .replace(/\{\{OG_DESCRIPTION\}\}/g, escHtml(card.flavor || `A ${card.rarity} tier Clawd Vault card`))
+    .replace(/\{\{OG_TITLE\}\}/g, escHtml(`${card.agent_name} — ClawV | CP ${card.cp}`))
+    .replace(/\{\{OG_DESCRIPTION\}\}/g, escHtml(card.flavor || `A ${card.rarity} tier ClawV card`))
     .replace(/\{\{OG_IMAGE\}\}/g, escHtml(imageUrl))
     .replace(/\{\{OG_URL\}\}/g, escHtml(cardUrl))
-    .replace(/\{\{CARD_TITLE\}\}/g, escHtml(`${card.emoji || '🦞'} ${card.agent_name} — Clawd Vault`))
+    .replace(/\{\{CARD_TITLE\}\}/g, escHtml(`${card.emoji || '🦞'} ${card.agent_name} — ClawV`))
     .replace(/\{\{CARD_DATA\}\}/g, JSON.stringify({
       name: card.agent_name,
       emoji: card.emoji,
@@ -105,6 +137,16 @@ router.get('/gallery', (req, res) => {
   let html = galleryTemplate
     .replace(/\{\{CARDS_DATA\}\}/g, JSON.stringify(cardsJson))
     .replace(/\{\{TOTAL\}\}/g, result.total)
+    .replace(/\{\{BASE_URL\}\}/g, baseUrl);
+
+  res.type('html').send(html);
+});
+
+// ─── GET /participate — Bot Instructions ───
+router.get('/participate', (req, res) => {
+  const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+
+  let html = participateTemplate
     .replace(/\{\{BASE_URL\}\}/g, baseUrl);
 
   res.type('html').send(html);
