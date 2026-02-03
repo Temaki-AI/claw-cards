@@ -530,19 +530,28 @@ document.getElementById('downloadCard').addEventListener('click', async () => {
   label.textContent = 'Rendering...';
 
   try {
-    // Reset any 3D transform so the capture is flat
     const card = document.getElementById('card');
     const prevTransform = card.style.transform;
+
+    // Flatten card and pause animations for clean capture
     card.style.transform = 'none';
+    card.style.animationPlayState = 'paused';
+    card.querySelectorAll('*').forEach(el => el.style.animationPlayState = 'paused');
 
     const canvas = await html2canvas(card, {
-      backgroundColor: null,
-      scale: 2, // Retina quality
+      backgroundColor: '#1a1614',
+      scale: 2,
       useCORS: true,
+      allowTaint: true,
       logging: false,
+      width: card.offsetWidth,
+      height: card.offsetHeight,
     });
 
+    // Restore
     card.style.transform = prevTransform;
+    card.style.animationPlayState = '';
+    card.querySelectorAll('*').forEach(el => el.style.animationPlayState = '');
 
     // Download
     const link = document.createElement('a');
